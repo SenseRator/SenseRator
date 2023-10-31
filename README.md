@@ -40,6 +40,10 @@ bash
 
 This will display the video with the filename `test.mp4`. Make sure the video is located in the project's root directory.
 
+### Prepare the Dataset
+
+- Download the [CamVid](https://www.kaggle.com/datasets/carlolepelaars/camvid) dataset from Kaggle and unzip the dataset in `data/camvid` dirs. This directory should contain a `data/camvid/images` folder and a `data/camvid/labels` folder with the respective test images and test labels.  
+
 ## Project Structure
 
 - `video_display.py`: Handles the loading and displaying of video files using the SDL2 library.
@@ -50,3 +54,5 @@ This will display the video with the filename `test.mp4`. Make sure the video is
 1. **Video Preprocessing**: Implement stabilization, denoising, and color normalization.
 2. **Feature Extraction**: Incorporate techniques like edge detection or deep learning models to detect damages.
 4. **Post-processing**: Filter out false positives and aggregate information.
+
+# Acknowledgements

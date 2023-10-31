@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-from unet.unet_model import UNet
-from torchvision import transforms
-import torch
+import os
 import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms
 import cv2
+from unet.unet_model import UNet
 from video_display import Display
 
 # Constants
@@ -11,9 +15,11 @@ WIDTH = 1920 // 2
 HEIGHT = 1080 // 2
 VIDEO_PATH = "test.mp4"
 
-# def process_frame(img):
-#     img = cv2.resize(img, (WIDTH, HEIGHT))
-#     disp.paint(img)
+# Model Initialization
+model = UNet()
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
 
 def process_frame(img):
     img = cv2.resize(img, (WIDTH, HEIGHT))
@@ -23,7 +29,7 @@ def process_frame(img):
     
     # Run the segmentation model
     with torch.no_grad():
-        output = unet_model(input_tensor)
+        output = model(input_tensor)
     
     # Generate the mask
     mask = torch.argmax(output.squeeze(), dim=0).detach().cpu().numpy()

@@ -1,3 +1,6 @@
 __pycache__/
+*.pyc
 venv/
 .venv/
+data/camvid/images/*
+data/camvid/labels/*

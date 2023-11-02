@@ -1,8 +1,10 @@
 import os
 import time
+import keyboard
 import open3d as o3d
 import PySimpleGUI as sui
 import open3d.visualization.gui as gui
+import open3d.visualization.rendering as rendering
 
 import convertCloud
 import windows
@@ -10,12 +12,20 @@ import windows
 app = o3d.visualization.gui.Application.instance
 app.initialize()
 
+# File paths
 absolute_path = os.getcwd()
 pcd_path = 'Data\pcd_files'
 ply_path = 'Data\ply_files'
 raw_path = 'Data\\raw_images'
 
-# point_cloud = o3d.io.read_point_cloud(f"{pcd_path}\pcd_out_000000.pcd")
+# Pause animation setup
+paused = False
+def toggle():
+	global paused
+	paused = not paused
+keyboard.add_hotkey('space', toggle) 
+# keyboard.add_hotkey('a', print, args=('AAAAAAAAAAAAAAAAAA', ':)')) 
+
 point_cloud = o3d.geometry.PointCloud()
 point_cloud_name = "Scene"
 
@@ -36,29 +46,14 @@ def unpackPLY():
 		print(e)
 
 # Change file directory 
-def setup_depth_streaming():
+def setup_streaming():
 	print(os.getcwd())
 	os.chdir(f'{absolute_path}\{pcd_path}')
-	print("Help")
-
-# Empty point cloud
-def setup_point_clouds():
-	point_cloud = o3d.geometry.PointCloud()
-
-# Initialize window and geometry
-def setup_scene():
-	vis.add_geometry(point_cloud_name, point_cloud)
-	vis.reset_camera_to_default()
-	# vis.setup_camera(60, [4,2,5], [0,0,-1.5], [0,1,0])
 
 # Read next point cloud 
 def update_point_clouds(file_path):
 	point_cloud = o3d.io.read_point_cloud(file_path)
-
-# Put new point cloud into the scene
-def update_scene():
-	vis.remove_geometry(point_cloud_name)
-	vis.add_geometry(point_cloud_name, point_cloud)
+	return point_cloud
 
 def run_one_tick():
 	app = o3d.visualization.gui.Application.instance
@@ -74,29 +69,33 @@ vis = o3d.visualization.O3DVisualizer("O3DVis", 1000, 700)
 vis.add_action("Custom Options", windows.options)
 vis.add_action("Video Player", windows.mediaPlayer)
 
-# Show window
+# Show & setup window
 app.add_window(vis)
+vis.add_geometry(point_cloud_name, point_cloud)
+# TODO: Rotate skybox or point cloud so they are aligned (Or just ignore skybox idk)
+vis.ground_plane = rendering.Scene.GroundPlane.XY
+vis.show_ground = True
+# Rotate camera so its facing the correct direction
+vis.setup_camera(60.0, [0,0,0], [-10,0,0], [0,0,1])
 
 # Read each file and update frames
 try:
-	setup_depth_streaming()
-	setup_point_clouds()
-	setup_scene()
+	setup_streaming()
 
 	for file in os.listdir():
 		if file.endswith(".pcd"):
-			update_point_clouds(f"{os.getcwd()}\{file}")
-			update_scene()
+			while paused:
+				time.sleep(0.5)
+
+			# Update point cloud
+			vis.remove_geometry(point_cloud_name)
+			point_cloud = update_point_clouds(f"{os.getcwd()}\{file}")
+			vis.add_geometry(point_cloud_name, point_cloud)
+			
 			run_one_tick()
-			print("Open file", file, point_cloud)
-			time.sleep(1)
+			time.sleep(0.1)
 
 except Exception as e:
 	print(e)
 
-# Normal visualizer (no skybox or menu)
-# main_vis = o3d.visualization.Visualizer()
-# main_vis.create_window("main_vis", 700, 500)
-# main_vis.add_geometry(hotel_cloud)
-# main_vis.run()
-# main_vis.destroy_window()
+vis.close()

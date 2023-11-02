@@ -123,12 +123,13 @@ def mediaPlayer(vis = None):
 						print("Paused restart")
 						raise Exception('RestartVideo')
 
-				event, values = window.read(timeout=50)
+				event, values = window.read(timeout=17)
 
 				# Make sure file is correct format and process into usable image/graph
 				if file.endswith(".raw"):
 					image = convertImage.grayscale(f'{abs_path}\{file}', resize)
 					# print(file)
+					window['-VIDEO-'].erase()
 					window['-VIDEO-'].draw_image(data=array_to_data(image), location=(0,resize[1]))
 					window.Refresh()
 

@@ -18,3 +18,4 @@ def grayscale(file_path, resize=None):
 	# 17 ms = 60 fps
 	# cv2.waitKey(17)
 	# cv2.destroyAllWindows()
+

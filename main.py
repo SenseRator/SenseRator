@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 import cv2
+import time
 import numpy as np
 import os
 import convertImage
@@ -71,6 +72,7 @@ def main():
 
     # Event Loop
     while True:
+        
         event, values = window.read()
         
         # Open output folder from vehicle
@@ -111,12 +113,14 @@ def main():
 
             img_elem = window['-IMAGE-']
             slider_elem = window['-SLIDER-']
-            timeout = 50 # 1000 ms / 10 fps = 100 ms per frame
+            fps = 10 # 1000 ms / 10 fps = 100 ms per frame
+            spf = 1/fps
 
             # Play Video
             cur_frame = 0
             while True:
-                event, values = window.read(timeout=timeout)
+                t = time.time()
+                event, values = window.read(timeout=0)
                 if event in ('Cancel', None, 'Exit'):
                     break
 
@@ -142,6 +146,15 @@ def main():
                 frame = bgr_image
                 im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                 img_elem.update(data=im_bytes)
+
+                # Limits FPS by counting the seconds spent on each frame
+                while(time.time()-t < spf):
+                    pass
+                
+                # DEBUGGING / TESTING
+                # Uncomment to test the time spent on each frame by the program
+                # To unlimit fps, change fps variable to 1000 or something high like that
+                # print(time.time()-t)
 
 
 

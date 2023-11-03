@@ -45,7 +45,7 @@ def set_layout(state, info = []):
         layout += [
             [sg.Text('Embedded video display via opencv. Pointcloud rendering opens in new window.')],
             [sg.Image(key='-IMAGE-')],
-            [sg.Slider(range=(0,num_frames), size=(60,10), orientation='h', key = '-SLIDER-')],
+            [sg.Slider(range=(0,num_frames-1), size=(60,10), orientation='h', key = '-SLIDER-')],
             
             # TODO embed detected objects
             # This is the display page
@@ -111,10 +111,9 @@ def main():
 
             img_elem = window['-IMAGE-']
             slider_elem = window['-SLIDER-']
-            timeout = 100 # 1000 ms / 10 fps = 100 ms per frame
+            timeout = 50 # 1000 ms / 10 fps = 100 ms per frame
 
             # Play Video
-
             cur_frame = 0
             while True:
                 event, values = window.read(timeout=timeout)
@@ -125,14 +124,28 @@ def main():
                     cur_frame = int(values['-SLIDER-'])
 
                 slider_elem.update(cur_frame)
-                cur_frame += 1
-                frame = convertImage.grayscale(folder+'/'+frames[cur_frame], [540,720])
+                cur_frame = (cur_frame + 1)%frames.size
+                
+                bgr_image = convertImage.rgb(folder+'/'+frames[cur_frame], (720,540))
+                # --==-- Plan B --==--
+                # If calling the file for each frame ends up taking too long at runtime,
+                # the ML algo can be initialized before this loop and called for each
+                # frame as in Plan A
+                #
+                #
+                # --==-- TODO Jose (Plan A) --==--
+                # bgr_image is a 720x540 np array in cv2's bgr format
+                # import your file at the head of main
+                # run machine learning on bgr_image here
+                # detected_image = yourfile.yourfuncion(bgr_image)
+                # Change from bgr_image to detected_image
+                frame = bgr_image
                 im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                 img_elem.update(data=im_bytes)
 
 
 
-
+    
 
         #elif event in ():
         elif event in ('Cancel'):

@@ -3,3 +3,4 @@
 *.pcd
 *.raw
 package-lock.json
+__pycache__/*.pyc

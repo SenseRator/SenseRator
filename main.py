@@ -5,6 +5,10 @@ import numpy as np
 import os
 import convertImage
 
+resize = (789,592) # 4:3 ratio
+def ImageButton(title, key):
+	return sg.Button(title, border_width=0, key=key)
+
 # Set up various layouts to be called later
 def set_layout(state, info = []):
     sg.theme('DarkAmber')
@@ -45,8 +49,11 @@ def set_layout(state, info = []):
         num_frames = info[0]
         layout += [
             [sg.Text('Embedded video display via opencv. Pointcloud rendering opens in new window.')],
-            [sg.Image(key='-IMAGE-')],
+            [sg.Image(key='-IMAGE-', size=resize, background_color='black')],
             [sg.Slider(range=(0,num_frames-1), size=(60,10), orientation='h', key = '-SLIDER-')],
+            [ImageButton('Restart', key='-RESTART-'), 
+             ImageButton('Pause', key='-PAUSE-'),
+             ImageButton('Play', key='-PLAY-')],
             
             # TODO embed detected objects
             # This is the display page
@@ -55,7 +62,7 @@ def set_layout(state, info = []):
 
     layout[-1].append(sg.Sizegrip())
 
-    window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True)
+    window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center')
     window.set_min_size(window.size)
     return window
 
@@ -112,50 +119,89 @@ def main():
             # Vision Results are displayed
 
             img_elem = window['-IMAGE-']
+            img_test = img_elem
             slider_elem = window['-SLIDER-']
             fps = 10 # 1000 ms / 10 fps = 100 ms per frame
             spf = 1/fps
 
             # Play Video
             cur_frame = 0
+            paused = True
             while True:
-                t = time.time()
-                event, values = window.read(timeout=0)
-                if event in ('Cancel', None, 'Exit'):
-                    break
+                try:
+                    while paused:
+                        # When timeout runs out it automatically continues without reading
+                        event, values = window.read(timeout=100)
 
-                if int(values['-SLIDER-']) != cur_frame-1:
-                    cur_frame = int(values['-SLIDER-'])
+                        # Read events while paused
+                        if event == sg.WIN_CLOSED or event == 'Cancel':
+                            break
+                        if event == '-PLAY-':
+                            paused = False
+                        if event == '-RESTART-':
+                            raise Exception('RestartVideo')
 
-                slider_elem.update(cur_frame)
-                cur_frame = (cur_frame + 1)%frames.size
-                
-                bgr_image = convertImage.rgb(folder+'/'+frames[cur_frame], (720,540))
-                # --==-- Plan B --==--
-                # If calling the file for each frame ends up taking too long at runtime,
-                # the ML algo can be initialized before this loop and called for each
-                # frame as in Plan A
-                #
-                #
-                # --==-- TODO Jose (Plan A) --==--
-                # bgr_image is a 720x540 np array in cv2's bgr format
-                # import your file at the head of main
-                # run machine learning on bgr_image here
-                # detected_image = yourfile.yourfuncion(bgr_image)
-                # Change from bgr_image to detected_image
-                frame = bgr_image
-                im_bytes = cv2.imencode('.png', frame)[1].tobytes()
-                img_elem.update(data=im_bytes)
+                    t = time.time()
+                    event, values = window.read(timeout=0)
+                    if event in ('Cancel', None, 'Exit'):
+                        break
 
-                # Limits FPS by counting the seconds spent on each frame
-                while(time.time()-t < spf):
-                    pass
-                
-                # DEBUGGING / TESTING
-                # Uncomment to test the time spent on each frame by the program
-                # To unlimit fps, change fps variable to 1000 or something high like that
-                # print(time.time()-t)
+                    if int(values['-SLIDER-']) != cur_frame-1 and cur_frame != 0:
+                        cur_frame = int(values['-SLIDER-'])
 
+                    slider_elem.update(cur_frame)
+                    cur_frame = (cur_frame + 1)%frames.size
+                    
+                    bgr_image = convertImage.rgb(folder+'/'+frames[cur_frame], resize)
+                    # --==-- Plan B --==--
+                    # If calling the file for each frame ends up taking too long at runtime,
+                    # the ML algo can be initialized before this loop and called for each
+                    # frame as in Plan A
+                    #
+                    #
+                    # --==-- TODO Jose (Plan A) --==--
+                    # bgr_image is a 720x540 np array in cv2's bgr format
+                    # import your file at the head of main
+                    # run machine learning on bgr_image here
+                    # detected_image = yourfile.yourfuncion(bgr_image)
+                    # Change from bgr_image to detected_image
+                    frame = bgr_image
+                    im_bytes = cv2.imencode('.png', frame)[1].tobytes()
+                    img_elem.update(data=im_bytes)
+
+                    # Read events while playing
+                    try:
+                        if event == '-PAUSE-':
+                            paused = True
+                        if event == '-RESTART-':
+                            raise Exception('RestartVideo')
+                    # Catch errors and use for restarting
+                    except Exception as e:
+                        if str(e) == 'RestartVideo':
+                            cur_frame = 0
+                            paused = True
+                            slider_elem.update(cur_frame)
+                            # img_elem.update(data=None, visible=True)
+                        else:
+                            print(e)
+
+                    # Limits FPS by counting the seconds spent on each frame
+                    while(time.time()-t < spf):
+                        pass
+                    
+                    # DEBUGGING / TESTING
+                    # Uncomment to test the time spent on each frame by the program
+                    # To unlimit fps, change fps variable to 1000 or something high like that
+                    # print(time.time()-t)
+                # Catch errors and use for restarting (from pause)
+                except Exception as e:
+                    if str(e) == 'RestartVideo':
+                        cur_frame = 0
+                        paused = True
+                        slider_elem.update(cur_frame)
+                        # img_elem.update(data=None)
+                    else:
+                        print(e)
 
 
     
@@ -171,6 +217,7 @@ def main():
 
         # End of Program
         if event in (None, 'Exit'):
+            window.close()
             break
             
             

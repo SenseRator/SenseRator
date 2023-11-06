@@ -17,6 +17,10 @@ model = YOLO('best.pt')
 def ImageButton(title, key):
 	return sg.Button(title, border_width=0, key=key)
 
+resize = (789,592) # 4:3 ratio
+def ImageButton(title, key):
+	return sg.Button(title, border_width=0, key=key)
+
 # Set up various layouts to be called later
 def set_layout(state, info = []):
     sg.theme('DarkAmber')
@@ -65,7 +69,7 @@ def set_layout(state, info = []):
             
             # TODO embed detected objects
             # This is the display page
-            [sg.Push(), sg.Button('Cancel')]
+            [sg.Push(), sg.Button('Back')]
         ]
 
     layout[-1].append(sg.Sizegrip())
@@ -144,8 +148,9 @@ def main():
                         event, values = window.read(timeout=100)
 
                         # Read events while paused
-                        if event == sg.WIN_CLOSED or event == 'Cancel':
-                            break
+
+                        if event in (sg.WIN_CLOSED, 'Cancel', 'Back'):
+                            raise Exception('CloseWindow')
                         if event == '-PLAY-':
                             paused = False
                         if event == '-RESTART-':
@@ -153,7 +158,8 @@ def main():
 
                     t = time.time()
                     event, values = window.read(timeout=0)
-                    if event in ('Cancel', None, 'Exit'):
+
+                    if event in ('Cancel', None, 'Exit', 'Back'):
                         break
 
                     if int(values['-SLIDER-']) != cur_frame-1 and cur_frame != 0:
@@ -162,8 +168,11 @@ def main():
                     slider_elem.update(cur_frame)
                     cur_frame = (cur_frame + 1)%frames.size
                     
+
+                    # bgr_image = convertImage.rgb(folder+'/'+frames[cur_frame], resize)
                     bgr_image = convertImage.rgb(folder+'/'+frames[i], resize)
                     bgr_image=frame_results[cur_frame].plot()
+
                     frame = bgr_image
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
@@ -199,6 +208,9 @@ def main():
                         paused = True
                         slider_elem.update(cur_frame)
                         # img_elem.update(data=None)
+
+                    elif str(e) == 'CloseWindow':
+                        break
                     else:
                         print(e)
 
@@ -206,7 +218,7 @@ def main():
     
 
         #elif event in ():
-        elif event in ('Cancel'):
+        if event in ('Cancel', 'Back'):
             pcap = []
             json = []
             frames = []

@@ -2,21 +2,25 @@ import os
 import time
 import keyboard
 import open3d as o3d
-import PySimpleGUI as sui
+import PySimpleGUI as sg
 import open3d.visualization.gui as gui
 import open3d.visualization.rendering as rendering
 
-import convertCloud
+import main
 import windows
+import convertCloud
 
 app = o3d.visualization.gui.Application.instance
 app.initialize()
 
-# File paths
-absolute_path = os.getcwd()
-pcd_path = 'Data\pcd_files'
-ply_path = 'Data\ply_files'
-raw_path = 'Data\\raw_images'
+selected_path = ''
+
+sg.theme('DarkAmber')
+selectLayout = [[sg.Text('Choose your folder')],
+								[sg.Push(), sg.Radio('.pcap', 0, default=True), sg.Push(), sg.Radio('.pcd/.ply', 0), sg.Push()],
+								[sg.InputText(key='-FILE-', change_submits=True), sg.FolderBrowse(target='-FILE-')],
+								[sg.Text(key='-UPDATE-')],
+								[sg.Button('Ok'), sg.Button('Cancel'), sg.Push()]]
 
 # Pause animation setup
 paused = False
@@ -24,31 +28,70 @@ def toggle():
 	global paused
 	paused = not paused
 keyboard.add_hotkey('space', toggle) 
-# keyboard.add_hotkey('a', print, args=('AAAAAAAAAAAAAAAAAA', ':)')) 
 
 point_cloud = o3d.geometry.PointCloud()
 point_cloud_name = "Scene"
 
 # ----- Open3D -----
 
-def unpackPCD():
-	# Unpack point clouds to seperate files
-	try:
-		convertCloud.pcap_to_pcd("Data\car_lidar_test.pcap", "Data\car_lidar_metadata.json", pcd_dir=f"{pcd_path}\.")
-	except Exception as e:
-		print(e)
+# Unpack point clouds to seperate files
+def unpackClouds(files, file_type='pcd'):
+	global selected_path
+	file = None
+	json = None
+	for f in files:
+		if (f.endswith('.json')):
+			json = f
+		elif (f.endswith('.pcap')):
+			file = f
 
-def unpackPLY():
-	# Unpack point clouds to seperate files
-	try:
-		convertCloud.pcap_to_ply("Data\car_lidar_test.pcap", "Data\car_lidar_metadata.json", ply_dir=f"{ply_path}\.")
-	except Exception as e:
-		print(e)
+	if (file == None or json == None):
+		print('.pcap file and .json metadata required')
+	elif (file_type == 'pcd'):
+		convertCloud.pcap_to_pcd(f'{selected_path}\{file}', f'{selected_path}\{json}', pcd_dir=f'{selected_path}\PCD_Files')
+		selected_path += '\PCD_Files'
+	elif (file_type == 'ply'):
+		convertCloud.pcap_to_ply(f'{selected_path}\{file}', f'{selected_path}\{json}', ply_dir=f'{selected_path}\PLY_Files')
+		selected_path += '\PLY_Files'
+
+	return os.listdir(selected_path)
+
 
 # Change file directory 
 def setup_streaming():
-	print(os.getcwd())
-	os.chdir(f'{absolute_path}\{pcd_path}')
+	window = sg.Window('Choose your folder', selectLayout)
+	global selected_path
+	files = []
+
+	while True:
+		event, values = window.read()
+
+		try:
+			selected_path = values['-FILE-']
+
+			if (event == '-FILE-'):
+				n = len(os.listdir(selected_path))
+				time = [int(n/600), int((n/10)%60)]
+				window['-UPDATE-'].update('The selected folder has ' + str(n) + ' frames, totalling ' + '{}:{:02d}'.format(time[0],time[1]) + ' of video.')
+			
+			if (event == 'Ok'):
+				window['-UPDATE-'].update('Processing...')
+				window.Refresh()
+				if (values[0]):
+					files = unpackClouds(os.listdir(selected_path))
+				else:
+					files = os.listdir(selected_path)
+				break
+			
+			if event in ('Cancel', sg.WIN_CLOSED):
+				window.close()
+				return [], ''
+		except Exception as e:
+			window['-UPDATE-'].update('Something went wrong.')
+			print(e)
+
+	window.close()
+	return files
 
 # Read next point cloud 
 def update_point_clouds(file_path):
@@ -67,7 +110,8 @@ def run_one_tick():
 # Create point cloud window
 vis = o3d.visualization.O3DVisualizer("O3DVis", 1000, 700)
 vis.add_action("Custom Options", windows.options)
-vis.add_action("Video Player", windows.mediaPlayer)
+# vis.add_action("Video Player", windows.mediaPlayer)
+vis.add_action("Video Player 2.0", main.main)
 
 # Show & setup window
 app.add_window(vis)
@@ -80,16 +124,17 @@ vis.setup_camera(60.0, [0,0,0], [-10,0,0], [0,0,1])
 
 # Read each file and update frames
 try:
-	setup_streaming()
+	files = setup_streaming()
+	# print(files)
 
-	for file in os.listdir():
-		if file.endswith(".pcd"):
+	for file in files:
+		if file.endswith('.pcd') or file.endswith('.ply'):
 			while paused:
 				time.sleep(0.5)
 
 			# Update point cloud
 			vis.remove_geometry(point_cloud_name)
-			point_cloud = update_point_clouds(f"{os.getcwd()}\{file}")
+			point_cloud = update_point_clouds(f"{selected_path}\{file}")
 			vis.add_geometry(point_cloud_name, point_cloud)
 			
 			run_one_tick()

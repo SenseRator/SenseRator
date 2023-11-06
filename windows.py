@@ -1,7 +1,7 @@
 import os
 from PIL import Image
 from io import BytesIO
-import PySimpleGUI as sui
+import PySimpleGUI as sg
 from multiprocessing import Process
 
 import convertImage
@@ -11,20 +11,21 @@ abs_path = ''
 frames = []
 resize = (789,592) # 4:3 ratio
 
+sg.theme('DarkAmber')
 def ImageButton(title, key):
-	return sui.Button(title, border_width=0, key=key)
+	return sg.Button(title, border_width=0, key=key)
 
-optionsLayout = [[sui.Text("This is a settings menu")],
-					[sui.Text("Movement Mode"), sui.Combo(['Fly', 'Model', 'Sun', 'Editing'], 'Fly', enable_events=True), sui.Button('Reset Camera', enable_events=True)],
-					[sui.Text("Show Skybox"), sui.Checkbox('', True, s=(3,3), enable_events=True)],
-					[sui.Text("Point Size"), sui.Slider((1,10), 3, 1, orientation='h', enable_events=True)],
-					[sui.Text("Shader"), sui.Combo(['Standard', 'Unlit', 'Normals', 'Depth'], 'Standard', enable_events=True)],
-					[sui.Text("Lighting ???")],
-					[sui.Text(key='-UPDATE-')],
-					[sui.Submit(), sui.Cancel()]]
+optionsLayout = [[sg.Text("This is a settings menu")],
+					[sg.Text("Movement Mode"), sg.Combo(['Fly', 'Model', 'Sun', 'Editing'], 'Fly', enable_events=True), sg.Button('Reset Camera', enable_events=True)],
+					[sg.Text("Show Skybox"), sg.Checkbox('', True, s=(3,3), enable_events=True)],
+					[sg.Text("Point Size"), sg.Slider((1,10), 3, 1, orientation='h', enable_events=True)],
+					[sg.Text("Shader"), sg.Combo(['Standard', 'Unlit', 'Normals', 'Depth'], 'Standard', enable_events=True)],
+					[sg.Text("Lighting ???")],
+					[sg.Text(key='-UPDATE-')],
+					[sg.Submit(), sg.Cancel()]]
 
-mediaLayout = [[sui.Text('Media File Player')],
-							 [sui.Graph(canvas_size=resize, 
+mediaLayout = [[sg.Text('Media File Player')],
+							 [sg.Graph(canvas_size=resize, 
 							 						graph_bottom_left=(0,0),
 													graph_top_right=resize, 
 													background_color='black', key='-VIDEO-')],
@@ -36,14 +37,14 @@ mediaLayout = [[sui.Text('Media File Player')],
 # Options window
 def options(vis):
 	# Initialize window
-	window = sui.Window("More Options", optionsLayout, finalize=True)
+	window = sg.Window("More Options", optionsLayout, finalize=True)
 
 	while True:
 		event, values = window.read()
 		# print(event, values)
 
 		try:
-			if event == sui.WIN_CLOSED or event == 'Cancel':
+			if event == sg.WIN_CLOSED or event == 'Cancel':
 				break
 			elif event == 'Submit':
 				window['-UPDATE-'].update('Saved')
@@ -83,7 +84,7 @@ def options(vis):
 # Video player window
 def mediaPlayer(vis = None):
 	# Initialize window and setup file path
-	window = sui.Window("Video Player", mediaLayout, finalize=True, element_justification='center');
+	window = sg.Window("Video Player", mediaLayout, finalize=True, element_justification='center');
 	# print('CURRENT PATH ', os.getcwd())
 	if ('pcd_files' in os.getcwd() or 'ply_files' in os.getcwd()):
 		temp = os.getcwd()[-9:]
@@ -112,7 +113,7 @@ def mediaPlayer(vis = None):
 					event, values = window.read(timeout=100)
 
 					# Read events while paused
-					if event == sui.WIN_CLOSED or event == '-EXIT-':
+					if event == sg.WIN_CLOSED or event == '-EXIT-':
 						print("Paused exit")
 						window.close()
 						return
@@ -135,7 +136,7 @@ def mediaPlayer(vis = None):
 
 				# Read events while playing
 				try:
-					if event == sui.WIN_CLOSED or event == '-EXIT-':
+					if event == sg.WIN_CLOSED or event == '-EXIT-':
 						print("Play exit")
 						window.close()
 						return
@@ -172,13 +173,3 @@ def array_to_data(array):
 		im.save(output, format='PNG')
 		data = output.getvalue()
 	return data
-
-# Grab video frames (Not used, just for reference)
-def video(window, frames=[], abs_path=''):
-	for file in frames:
-		if file.endswith(".raw"):
-			image = convertImage.grayscale(f'{abs_path}\{file}', resize)
-			# print(file)
-			window['-VIDEO-'].draw_image(data=array_to_data(image), location=(0,resize[1]))
-			window.Refresh()
-			# time.sleep(0.1)

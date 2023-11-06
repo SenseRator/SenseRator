@@ -57,7 +57,7 @@ def set_layout(state, info = []):
             
             # TODO embed detected objects
             # This is the display page
-            [sg.Push(), sg.Button('Cancel')]
+            [sg.Push(), sg.Button('Back')]
         ]
 
     layout[-1].append(sg.Sizegrip())
@@ -134,8 +134,8 @@ def main():
                         event, values = window.read(timeout=100)
 
                         # Read events while paused
-                        if event == sg.WIN_CLOSED or event == 'Cancel':
-                            break
+                        if event in (sg.WIN_CLOSED, 'Cancel', 'Back'):
+                            raise Exception('CloseWindow')
                         if event == '-PLAY-':
                             paused = False
                         if event == '-RESTART-':
@@ -143,7 +143,7 @@ def main():
 
                     t = time.time()
                     event, values = window.read(timeout=0)
-                    if event in ('Cancel', None, 'Exit'):
+                    if event in ('Cancel', None, 'Exit', 'Back'):
                         break
 
                     if int(values['-SLIDER-']) != cur_frame-1 and cur_frame != 0:
@@ -200,6 +200,8 @@ def main():
                         paused = True
                         slider_elem.update(cur_frame)
                         # img_elem.update(data=None)
+                    elif str(e) == 'CloseWindow':
+                        break
                     else:
                         print(e)
 
@@ -207,7 +209,7 @@ def main():
     
 
         #elif event in ():
-        elif event in ('Cancel'):
+        if event in ('Cancel', 'Back'):
             pcap = []
             json = []
             frames = []

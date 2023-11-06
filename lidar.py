@@ -10,10 +10,14 @@ import main
 import windows
 import convertCloud
 
+vis = None
 app = o3d.visualization.gui.Application.instance
 app.initialize()
 
 selected_path = ''
+files = []
+point_cloud = o3d.geometry.PointCloud()
+point_cloud_name = "Scene"
 
 sg.theme('DarkAmber')
 selectLayout = [[sg.Text('Choose your folder')],
@@ -29,11 +33,7 @@ def toggle():
 	paused = not paused
 keyboard.add_hotkey('space', toggle) 
 
-point_cloud = o3d.geometry.PointCloud()
-point_cloud_name = "Scene"
-
-# ----- Open3D -----
-
+# ----- Helpers -----
 # Unpack point clouds to seperate files
 def unpackClouds(files, file_type='pcd'):
 	global selected_path
@@ -56,12 +56,11 @@ def unpackClouds(files, file_type='pcd'):
 
 	return os.listdir(selected_path)
 
-
 # Change file directory 
 def setup_streaming():
 	window = sg.Window('Choose your folder', selectLayout)
 	global selected_path
-	files = []
+	global files
 
 	while True:
 		event, values = window.read()
@@ -106,41 +105,70 @@ def run_one_tick():
 	return tick_return
 
 # ----- The Meat -----
+def initWindow():
+	global vis
+	global files
 
-# Create point cloud window
-vis = o3d.visualization.O3DVisualizer("O3DVis", 1000, 700)
-vis.add_action("Custom Options", windows.options)
-# vis.add_action("Video Player", windows.mediaPlayer)
-vis.add_action("Video Player 2.0", main.main)
+	# Create point cloud window
+	vis = o3d.visualization.O3DVisualizer("O3DVis", 1000, 700)
+	vis.add_action("Custom Options", windows.options)
+	# vis.add_action("Video Player", windows.mediaPlayer)
+	vis.add_action("Video Player 2.0", main.main)
 
-# Show & setup window
-app.add_window(vis)
-vis.add_geometry(point_cloud_name, point_cloud)
-# TODO: Rotate skybox or point cloud so they are aligned (Or just ignore skybox idk)
-vis.ground_plane = rendering.Scene.GroundPlane.XY
-vis.show_ground = True
-# Rotate camera so its facing the correct direction
-vis.setup_camera(60.0, [0,0,0], [-10,0,0], [0,0,1])
+	# Show & setup window
+	app.add_window(vis)
+	vis.add_geometry(point_cloud_name, point_cloud)
+	# TODO: Rotate skybox or point cloud so they are aligned (Or just ignore skybox idk)
+	vis.ground_plane = rendering.Scene.GroundPlane.XY
+	vis.show_ground = True
+	# Rotate camera so its facing the correct direction
+	vis.setup_camera(60.0, [0,0,0], [-10,0,0], [0,0,1])
 
-# Read each file and update frames
-try:
+	# Import files to show
 	files = setup_streaming()
-	# print(files)
 
-	for file in files:
+def readFiles():
+	# Read each file and update frames
+	try:
+		for file in files:
+			if file.endswith('.pcd') or file.endswith('.ply'):
+				while paused:
+					time.sleep(0.5)
+
+				# Update point cloud
+				vis.remove_geometry(point_cloud_name)
+				point_cloud = update_point_clouds(f"{selected_path}\{file}")
+				vis.add_geometry(point_cloud_name, point_cloud)
+				
+				run_one_tick()
+				time.sleep(0.1)
+
+	except Exception as e:
+		print(e)
+
+	vis.close()
+
+def readFile(i):
+	if (i >= len(files)):
+		return
+
+	global vis
+	file = files[i]
+
+	# Read each file and update frames
+	try:
 		if file.endswith('.pcd') or file.endswith('.ply'):
-			while paused:
-				time.sleep(0.5)
-
 			# Update point cloud
 			vis.remove_geometry(point_cloud_name)
 			point_cloud = update_point_clouds(f"{selected_path}\{file}")
 			vis.add_geometry(point_cloud_name, point_cloud)
 			
 			run_one_tick()
-			time.sleep(0.1)
 
-except Exception as e:
-	print(e)
+	except Exception as e:
+		print(e)
 
-vis.close()
+if __name__ == '__main__':
+	sg.theme('DarkAmber')
+	initWindow()
+	readFiles()

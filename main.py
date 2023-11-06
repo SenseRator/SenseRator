@@ -1,10 +1,12 @@
-import PySimpleGUI as sg
+import os
 import cv2
 import time
 import numpy as np
-import os
-import convertImage
+import PySimpleGUI as sg
 from ultralytics import YOLO
+
+import lidar
+import convertImage
 
 resize = (789,592) # 4:3 ratio
 
@@ -104,6 +106,8 @@ def main():
             pcap = files[size-1]
             json = files[size-2]
             frames = files[0:size-3]
+
+            lidar.initWindow()
             
             if folder not in (None, ''):
                 window.close()
@@ -118,8 +122,10 @@ def main():
             for i in range(frames.size):
                 # Convert images to bgr (cv2 frames). Run predictions on frame. Add results to list.
                 bgr_image = convertImage.rgb(folder+'/'+frames[i], resize)
-                results=model.predict(bgr_image, show= True)
+                results=model.predict(bgr_image, show= True, device=0)
                 frame_results.append(results[0])
+
+                lidar.readFile(i)
 
                 progress_bar.update(current_count = i+1)
 
@@ -176,6 +182,7 @@ def main():
                     frame = bgr_image
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
+                    lidar.readFile(cur_frame)
 
                     # Read events while playing
                     try:

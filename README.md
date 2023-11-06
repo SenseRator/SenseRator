@@ -32,3 +32,4 @@ Numpy
 Open3D  
 Ouster  
 PySimpleGUI  
+Ultralytics

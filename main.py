@@ -4,6 +4,18 @@ import time
 import numpy as np
 import os
 import convertImage
+from ultralytics import YOLO
+
+resize = (789,592) # 4:3 ratio
+
+# Stores object detections information as YOLO results objects
+frame_results = []
+
+# Object detection model. 
+model = YOLO('best.pt')
+
+def ImageButton(title, key):
+	return sg.Button(title, border_width=0, key=key)
 
 resize = (789,592) # 4:3 ratio
 def ImageButton(title, key):
@@ -104,8 +116,10 @@ def main():
             progress_bar = window['-PROGRESS BAR-']
             import time
             for i in range(frames.size):
-                # Read in image to array
-                # Do object detection on image
+                # Convert images to bgr (cv2 frames). Run predictions on frame. Add results to list.
+                bgr_image = convertImage.rgb(folder+'/'+frames[i], resize)
+                results=model.predict(bgr_image, show= True)
+                frame_results.append(results[0])
 
                 progress_bar.update(current_count = i+1)
 
@@ -134,6 +148,7 @@ def main():
                         event, values = window.read(timeout=100)
 
                         # Read events while paused
+
                         if event in (sg.WIN_CLOSED, 'Cancel', 'Back'):
                             raise Exception('CloseWindow')
                         if event == '-PLAY-':
@@ -143,6 +158,7 @@ def main():
 
                     t = time.time()
                     event, values = window.read(timeout=0)
+
                     if event in ('Cancel', None, 'Exit', 'Back'):
                         break
 
@@ -152,19 +168,11 @@ def main():
                     slider_elem.update(cur_frame)
                     cur_frame = (cur_frame + 1)%frames.size
                     
-                    bgr_image = convertImage.rgb(folder+'/'+frames[cur_frame], resize)
-                    # --==-- Plan B --==--
-                    # If calling the file for each frame ends up taking too long at runtime,
-                    # the ML algo can be initialized before this loop and called for each
-                    # frame as in Plan A
-                    #
-                    #
-                    # --==-- TODO Jose (Plan A) --==--
-                    # bgr_image is a 720x540 np array in cv2's bgr format
-                    # import your file at the head of main
-                    # run machine learning on bgr_image here
-                    # detected_image = yourfile.yourfuncion(bgr_image)
-                    # Change from bgr_image to detected_image
+
+                    # bgr_image = convertImage.rgb(folder+'/'+frames[cur_frame], resize)
+                    bgr_image = convertImage.rgb(folder+'/'+frames[i], resize)
+                    bgr_image=frame_results[cur_frame].plot()
+
                     frame = bgr_image
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
@@ -200,6 +208,7 @@ def main():
                         paused = True
                         slider_elem.update(cur_frame)
                         # img_elem.update(data=None)
+
                     elif str(e) == 'CloseWindow':
                         break
                     else:

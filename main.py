@@ -42,6 +42,18 @@ def set_layout(state, info = []):
             [sg.Button('Open Folder')]
         ]
 
+    elif state in ('folder select'):
+        layout += [[sg.Frame('Images', [[sg.InputText(key='-IMGS-', change_submits=True), 
+                                         sg.FolderBrowse(target='-IMGS-')]]
+                    )],
+                    [sg.Frame('Point Clouds', [[sg.Push(), sg.Radio('.pcap', 0, default=True), sg.Push(), sg.Radio('.pcd/.ply', 0), sg.Push()], 
+                                               [sg.InputText(key='-PCS-', change_submits=True), 
+                                                sg.FolderBrowse(target='-PCS-')]]
+                    )],
+                   [sg.Text(key='-UPDATE-')],
+                   [sg.Button('Ok'), sg.Button('Cancel'), sg.Push()]
+        ]
+
     elif state in ('folder selected'):
         n = info[0]
         time = [int(n/600), int((n/10)%60)]
@@ -81,6 +93,51 @@ def set_layout(state, info = []):
     return window
 
 
+def folder_select(window):
+    window = set_layout('folder select')
+    folder = ''
+    files = np.asarray([])
+
+    while True:
+        event, values = window.read()
+
+        try:
+            folderCam = values['-IMGS-']
+            folderLid = values['-PCS-']
+
+            if (event == '-IMGS-'):
+                n = len(os.listdir(folderCam))
+                time = [int(n/600), int((n/10)%60)]
+                window['-UPDATE-'].update('The selected folder has ' + str(n) + ' frames, totalling ' + '{}:{:02d}'.format(time[0],time[1]) + ' of video.')
+            
+            if (event == 'Ok'):
+                window['-UPDATE-'].update('Processing...')
+                window.Refresh()
+
+                if folderLid in (None, ''):
+                    window['-UPDATE-'].update('No point cloud folder selected.')
+                else:
+                    lidar.initWindow(folderLid, values[0])
+
+                files = np.asarray(os.listdir(folderCam))
+                size = files.size
+                frames = files[0:size-3]
+                if folderCam in (None, ''):
+                    window['-UPDATE-'].update('No image folder selected.')
+                else:
+                    break
+            
+            if event in ('Cancel', sg.WIN_CLOSED):
+                window.close()
+                window = set_layout('folder selected', [frames.size])
+        except Exception as e:
+            window['-UPDATE-'].update('Something went wrong.')
+            print(e)
+    
+    window.close()
+    window = set_layout('folder selected', [frames.size])
+    return folderCam, frames, window
+
 def main():
     window = set_layout('startup')
     folder = ''
@@ -98,20 +155,7 @@ def main():
         
         # Open output folder from vehicle
         if event in ('Open Folder'):
-            folder = ''
-            while(folder == '') :
-                folder = sg.popup_get_folder('Choose your folder', keep_on_top=True)
-            files = np.asarray(os.listdir(folder))
-            size = files.size
-            pcap = files[size-1]
-            json = files[size-2]
-            frames = files[0:size-3]
-
-            lidar.initWindow()
-            
-            if folder not in (None, ''):
-                window.close()
-                window = set_layout('folder selected', [frames.size])
+            folder, frames, window = folder_select(window)
 
         # Process images and pcap file from vehicle output
         elif event in ('Confirm'):
@@ -122,9 +166,8 @@ def main():
             for i in range(frames.size):
                 # Convert images to bgr (cv2 frames). Run predictions on frame. Add results to list.
                 bgr_image = convertImage.rgb(folder+'/'+frames[i], resize)
-                results=model.predict(bgr_image, show= True, device=0)
+                results=model.predict(bgr_image, show= True, device=0,show_conf=True)
                 frame_results.append(results[0])
-
                 lidar.readFile(i)
 
                 progress_bar.update(current_count = i+1)
@@ -234,7 +277,7 @@ def main():
             window = set_layout('startup')
 
         # End of Program
-        if event in (None, 'Exit'):
+        if event in (None, 'Exit', sg.WIN_CLOSED):
             window.close()
             break
             

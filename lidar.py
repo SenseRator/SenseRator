@@ -105,15 +105,15 @@ def run_one_tick():
 	return tick_return
 
 # ----- The Meat -----
-def initWindow():
+def initWindow(folder=None, setting=None):
 	global vis
 	global files
 
 	# Create point cloud window
-	vis = o3d.visualization.O3DVisualizer("O3DVis", 1000, 700)
+	vis = o3d.visualization.O3DVisualizer("Lidar Data", 1000, 700)
 	vis.add_action("Custom Options", windows.options)
 	# vis.add_action("Video Player", windows.mediaPlayer)
-	vis.add_action("Video Player 2.0", main.main)
+	# vis.add_action("Video Player 2.0", main.main)
 
 	# Show & setup window
 	app.add_window(vis)
@@ -121,11 +121,18 @@ def initWindow():
 	# TODO: Rotate skybox or point cloud so they are aligned (Or just ignore skybox idk)
 	vis.ground_plane = rendering.Scene.GroundPlane.XY
 	vis.show_ground = True
+	vis.show_settings = False
 	# Rotate camera so its facing the correct direction
 	vis.setup_camera(60.0, [0,0,0], [-10,0,0], [0,0,1])
 
 	# Import files to show
-	files = setup_streaming()
+	if folder:
+		if setting:
+			files = unpackClouds(os.listdir(folder))
+		else:
+			files = os.listdir(folder)
+	else:
+		files = setup_streaming()
 
 def readFiles():
 	# Read each file and update frames
@@ -148,6 +155,7 @@ def readFiles():
 
 	vis.close()
 
+# TODO: POINT CLOUDS WONT READ AGAIN T-T
 def readFile(i):
 	if (i >= len(files)):
 		return

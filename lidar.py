@@ -21,7 +21,7 @@ point_cloud_name = "Scene"
 
 sg.theme('DarkAmber')
 selectLayout = [[sg.Text('Choose your folder')],
-								[sg.Push(), sg.Radio('.pcap', 0, default=True), sg.Push(), sg.Radio('.pcd/.ply', 0), sg.Push()],
+								[sg.Push(), sg.Radio('.pcd/.ply', 0, default=True), sg.Push(), sg.Radio('.pcap', 0), sg.Push()],
 								[sg.InputText(key='-FILE-', change_submits=True), sg.FolderBrowse(target='-FILE-')],
 								[sg.Text(key='-UPDATE-')],
 								[sg.Button('Ok'), sg.Button('Cancel'), sg.Push()]]
@@ -74,12 +74,12 @@ def setup_streaming():
 				window['-UPDATE-'].update('The selected folder has ' + str(n) + ' frames, totalling ' + '{}:{:02d}'.format(time[0],time[1]) + ' of video.')
 			
 			if (event == 'Ok'):
-				window['-UPDATE-'].update('Processing...')
+				window['-UPDATE-'].update('Loading...')
 				window.Refresh()
 				if (values[0]):
-					files = unpackClouds(os.listdir(selected_path))
-				else:
 					files = os.listdir(selected_path)
+				else:
+					files = unpackClouds(os.listdir(selected_path))
 				break
 			
 			if event in ('Cancel', sg.WIN_CLOSED):
@@ -108,6 +108,7 @@ def run_one_tick():
 def initWindow(folder=None, setting=None):
 	global vis
 	global files
+	global selected_path
 
 	# Create point cloud window
 	vis = o3d.visualization.O3DVisualizer("Lidar Data", 1000, 700)
@@ -127,10 +128,11 @@ def initWindow(folder=None, setting=None):
 
 	# Import files to show
 	if folder:
+		selected_path = folder
 		if setting:
-			files = unpackClouds(os.listdir(folder))
-		else:
 			files = os.listdir(folder)
+		else:
+			files = unpackClouds(os.listdir(folder))
 	else:
 		files = setup_streaming()
 

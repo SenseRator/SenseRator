@@ -43,15 +43,17 @@ def set_layout(state, info = []):
         ]
 
     elif state in ('folder select'):
-        layout += [[sg.Frame('Images', [[sg.InputText(key='-IMGS-', change_submits=True), 
-                                         sg.FolderBrowse(target='-IMGS-')]]
-                    )],
-                    [sg.Frame('Point Clouds', [[sg.Push(), sg.Radio('.pcap', 0, default=True), sg.Push(), sg.Radio('.pcd/.ply', 0), sg.Push()], 
-                                               [sg.InputText(key='-PCS-', change_submits=True), 
-                                                sg.FolderBrowse(target='-PCS-')]]
-                    )],
-                   [sg.Text(key='-UPDATE-')],
-                   [sg.Button('Ok'), sg.Button('Cancel'), sg.Push()]
+        layout += [
+            [sg.Frame('Images', [
+                [sg.InputText(key='-IMGS-', change_submits=True), 
+                 sg.FolderBrowse(target='-IMGS-')]] )],
+            [sg.Frame('Point Clouds', [
+                [sg.Push(), sg.Radio('.pcd/.ply', 0, default=True), 
+                 sg.Push(), sg.Radio('.pcap', 0), sg.Push()], 
+                [sg.InputText(key='-PCS-', change_submits=True), 
+                 sg.FolderBrowse(target='-PCS-')]] )],
+            [sg.Text(key='-UPDATE-')],
+            [sg.Button('Ok'), sg.Button('Cancel'), sg.Push()]
         ]
 
     elif state in ('folder selected'):
@@ -88,7 +90,15 @@ def set_layout(state, info = []):
 
     layout[-1].append(sg.Sizegrip())
 
-    window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center')
+    window = None
+    if state in ('startup'):
+        window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center', location=(750,850))
+    elif state in ('processing'):
+        window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center', location=(550,850))
+    elif state in ('object detected'):
+        window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center', location=(20,20))
+    else:
+        window = sg.Window('SenseRator', layout, keep_on_top = True, finalize = True, resizable = True, element_justification='center')
     window.set_min_size(window.size)
     return window
 
@@ -111,7 +121,7 @@ def folder_select(window):
                 window['-UPDATE-'].update('The selected folder has ' + str(n) + ' frames, totalling ' + '{}:{:02d}'.format(time[0],time[1]) + ' of video.')
             
             if (event == 'Ok'):
-                window['-UPDATE-'].update('Processing...')
+                window['-UPDATE-'].update('Loading...')
                 window.Refresh()
 
                 if folderLid in (None, ''):
@@ -166,7 +176,7 @@ def main():
             for i in range(frames.size):
                 # Convert images to bgr (cv2 frames). Run predictions on frame. Add results to list.
                 bgr_image = convertImage.rgb(folder+'/'+frames[i], resize)
-                results=model.predict(bgr_image, show= True, device=0,show_conf=True)
+                results = model.predict(bgr_image, show= True, device=0,show_conf=True)
                 frame_results.append(results[0])
                 lidar.readFile(i)
 

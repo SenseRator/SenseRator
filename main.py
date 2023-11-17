@@ -14,7 +14,7 @@ resize = (789,592) # 4:3 ratio
 frame_results = []
 
 # Object detection model. 
-model = YOLO('best.pt')
+model = YOLO('model.pt')
 
 def ImageButton(title, key):
 	return sg.Button(title, border_width=0, key=key)

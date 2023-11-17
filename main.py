@@ -175,8 +175,9 @@ def main():
             import time
             for i in range(frames.size):
                 # Convert images to bgr (cv2 frames). Run predictions on frame. Add results to list.
-                bgr_image = convertImage.rgb(folder+'/'+frames[i], resize)
-                results = model.predict(bgr_image, show= True, device=0,show_conf=True)
+                img = cv2.imread(os.path.join(folder,frames[i]))
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                results = model.predict(img, show= True, device=0,show_conf=True)
                 frame_results.append(results[0])
                 lidar.readFile(i)
 
@@ -228,11 +229,11 @@ def main():
                     cur_frame = (cur_frame + 1)%frames.size
                     
 
-                    # bgr_image = convertImage.rgb(folder+'/'+frames[cur_frame], resize)
-                    bgr_image = convertImage.rgb(folder+'/'+frames[i], resize)
-                    bgr_image=frame_results[cur_frame].plot()
+                    img = cv2.imread(os.path.join(folder,frames[i]))
+                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    img=frame_results[cur_frame].plot()
 
-                    frame = bgr_image
+                    frame = img
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
                     lidar.readFile(cur_frame)

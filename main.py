@@ -177,7 +177,7 @@ def main():
                 # Convert images to bgr (cv2 frames). Run predictions on frame. Add results to list.
                 img = cv2.imread(os.path.join(folder,frames[i]))
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                results = model.predict(img, show= True, device=0,show_conf=True)
+                results = model.predict(img, show= True, device=0,show_conf=True, conf=0.8)
                 frame_results.append(results[0])
                 lidar.readFile(i)
 

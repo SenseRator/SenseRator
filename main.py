@@ -23,6 +23,13 @@ frame_results = []
 # Object detection model. 
 model = YOLO('model.pt')
 
+def timestamp(filename):
+    ts = filename.split('_')[1:]
+    ts = ts[:5]+ts[5].split('.')[:2]
+    s = float(ts[2]) * (24 * 60 * 60) + float(ts[3]) * (60 * 60) + float(ts[4]) * 60 + float(ts[5]) * 1 + float(ts[6]) * .0001
+    
+    return s
+
 def ImageButton(title, key):
 	return sg.Button(title, border_width=0, key=key)
 
@@ -172,7 +179,7 @@ def main():
             window.close()
             window = set_layout('processing', [frames.size])
             progress_bar = window['-PROGRESS BAR-']
-            import time
+            
             for i in range(frames.size):
                 # Convert images to rgb (cv2 frames). Run predictions on frame. Add results to list.
                 img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
@@ -191,8 +198,7 @@ def main():
             img_elem = window['-IMAGE-']
             img_test = img_elem
             slider_elem = window['-SLIDER-']
-            fps = 10 # 1000 ms / 10 fps = 100 ms per frame
-            spf = 1/fps
+           
 
             # Play video
             cur_frame = 0
@@ -212,6 +218,7 @@ def main():
                             raise Exception('RestartVideo')
 
                     t = time.time()
+                    dur = timestamp(frames[cur_frame+1]) - timestamp(frames[cur_frame])
                     event, values = window.read(timeout=0)
 
                     if event in ('Cancel', None, 'Exit', 'Back'):
@@ -221,9 +228,9 @@ def main():
                         cur_frame = int(values['-SLIDER-'])
 
                     slider_elem.update(cur_frame)
-                    cur_frame = (cur_frame + 1)%frames.size
+                    cur_frame = (cur_frame + 1)%(frames.size-3)
                     
-                    img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
+                    # img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
                     img = frame_results[cur_frame].plot()
 
                     frame = img
@@ -248,7 +255,7 @@ def main():
                             print(e)
 
                     # Limits FPS by counting the seconds spent on each frame
-                    while(time.time()-t < spf):
+                    while(time.time()-t < dur):
                         pass
                     
                     # DEBUGGING / TESTING

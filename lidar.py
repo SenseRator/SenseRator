@@ -1,6 +1,7 @@
 import os
 import time
 import keyboard
+import numpy as np
 import open3d as o3d
 import PySimpleGUI as sg
 import open3d.visualization.gui as gui
@@ -18,6 +19,7 @@ selected_path = ''
 files = []
 point_cloud = o3d.geometry.PointCloud()
 point_cloud_name = "Scene"
+rotation = None
 
 sg.theme('DarkAmber')
 selectLayout = [[sg.Text('Choose your folder')],
@@ -31,7 +33,8 @@ paused = False
 def toggle():
 	global paused
 	paused = not paused
-keyboard.add_hotkey('space', toggle) 
+
+
 
 # ----- Helpers -----
 # Unpack point clouds to seperate files
@@ -95,8 +98,10 @@ def setup_streaming():
 # Read next point cloud 
 def update_point_clouds(file_path):
 	point_cloud = o3d.io.read_point_cloud(file_path)
+	point_cloud.rotate(rotation, center=(0,0,0))
 	return point_cloud
 
+# Update window
 def run_one_tick():
 	app = o3d.visualization.gui.Application.instance
 	tick_return = app.run_one_tick()
@@ -104,10 +109,14 @@ def run_one_tick():
 		vis.post_redraw()
 	return tick_return
 
+
+
 # ----- The Meat -----
+# Start window and read in files
 def initWindow(folder=None, setting=None):
 	global vis
 	global files
+	global rotation
 	global selected_path
 
 	# Create point cloud window
@@ -119,12 +128,15 @@ def initWindow(folder=None, setting=None):
 	# Show & setup window
 	app.add_window(vis)
 	vis.add_geometry(point_cloud_name, point_cloud)
-	# TODO: Rotate skybox or point cloud so they are aligned (Or just ignore skybox idk)
-	vis.ground_plane = rendering.Scene.GroundPlane.XY
+	vis.ground_plane = rendering.Scene.GroundPlane.XZ
 	vis.show_ground = True
-	vis.show_settings = False
+	if (folder != None):
+		vis.show_settings = False
 	# Rotate camera so its facing the correct direction
-	vis.setup_camera(60.0, [0,0,0], [-10,0,0], [0,0,1])
+	vis.setup_camera(60.0, [0,0,0], [8,4,0], [1,1,0])
+
+	# TODO: Rotate skybox or point cloud so they are aligned (Or just ignore skybox idk)
+	rotation = point_cloud.get_rotation_matrix_from_xyz((-np.pi/2, 0, 0))
 
 	# Import files to show
 	if folder:
@@ -136,6 +148,7 @@ def initWindow(folder=None, setting=None):
 	else:
 		files = setup_streaming()
 
+# Read files all at once (only run if file ran independantly)
 def readFiles():
 	# Read each file and update frames
 	try:
@@ -157,7 +170,7 @@ def readFiles():
 
 	vis.close()
 
-# TODO: POINT CLOUDS WONT READ AGAIN T-T
+# Read one file (to be run in tandem with images/video)
 def readFile(i):
 	if (i >= len(files)):
 		return
@@ -178,7 +191,17 @@ def readFile(i):
 	except Exception as e:
 		print(e)
 
+# Empty Open3D scene/window
+def resetScene():
+	selected_path = ''
+	files = []
+	vis.remove_geometry(point_cloud_name)
+
+
+
 if __name__ == '__main__':
 	sg.theme('DarkAmber')
+	keyboard.add_hotkey('space', toggle)
+	print("Tap [space] to pause")
 	initWindow()
 	readFiles()

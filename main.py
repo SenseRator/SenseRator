@@ -1,6 +1,8 @@
 import os
 import cv2
+import sys
 import time
+import keyboard
 import numpy as np
 import PySimpleGUI as sg
 from ultralytics import YOLO
@@ -8,7 +10,12 @@ from ultralytics import YOLO
 import lidar
 import convertImage
 
-resize = (789,592) # 4:3 ratio
+def programEnd():
+    print('Bye bye')
+    sys.exit()
+keyboard.add_hotkey('esc', programEnd)
+
+resize = (820,615) # 4:3 ratio
 
 # Stores object detections information as YOLO results objects
 frame_results = []
@@ -16,10 +23,6 @@ frame_results = []
 # Object detection model. 
 model = YOLO('model.pt')
 
-def ImageButton(title, key):
-	return sg.Button(title, border_width=0, key=key)
-
-resize = (789,592) # 4:3 ratio
 def ImageButton(title, key):
 	return sg.Button(title, border_width=0, key=key)
 
@@ -76,7 +79,6 @@ def set_layout(state, info = []):
     elif state in ('object detected'):
         num_frames = info[0]
         layout += [
-            [sg.Text('Embedded video display via opencv. Pointcloud rendering opens in new window.')],
             [sg.Image(key='-IMAGE-', size=resize, background_color='black')],
             [sg.Slider(range=(0,num_frames-1), size=(60,10), orientation='h', key = '-SLIDER-')],
             [ImageButton('Restart', key='-RESTART-'), 
@@ -103,6 +105,8 @@ def set_layout(state, info = []):
     return window
 
 
+
+# Let user input folders for images and point clouds
 def folder_select(window):
     window = set_layout('folder select')
     folder = ''
@@ -151,10 +155,6 @@ def folder_select(window):
 def main():
     window = set_layout('startup')
     folder = ''
-    # LiDar packets
-    pcap = []
-    # Metadata for LiDar visualization in Ouster
-    json = []
     # RGB video frames
     frames = []
 
@@ -174,23 +174,19 @@ def main():
             progress_bar = window['-PROGRESS BAR-']
             import time
             for i in range(frames.size):
-                # Convert images to bgr (cv2 frames). Run predictions on frame. Add results to list.
-                img = cv2.imread(os.path.join(folder,frames[i]))
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                # Convert images to rgb (cv2 frames). Run predictions on frame. Add results to list.
+                img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
                 results = model.predict(img, show= True, device=0,show_conf=True, conf=0.8)
                 frame_results.append(results[0])
+
+                # Grab lidar frame
                 lidar.readFile(i)
 
                 progress_bar.update(current_count = i+1)
 
-            # Process PCAP file
-
-            # Pair images with LiDar scan
             
             window.close()
             window = set_layout('object detected', [frames.size])
-
-            # Vision Results are displayed
 
             img_elem = window['-IMAGE-']
             img_test = img_elem
@@ -198,7 +194,7 @@ def main():
             fps = 10 # 1000 ms / 10 fps = 100 ms per frame
             spf = 1/fps
 
-            # Play Video
+            # Play video
             cur_frame = 0
             paused = True
             while True:
@@ -208,7 +204,6 @@ def main():
                         event, values = window.read(timeout=100)
 
                         # Read events while paused
-
                         if event in (sg.WIN_CLOSED, 'Cancel', 'Back'):
                             raise Exception('CloseWindow')
                         if event == '-PLAY-':
@@ -228,10 +223,8 @@ def main():
                     slider_elem.update(cur_frame)
                     cur_frame = (cur_frame + 1)%frames.size
                     
-
-                    img = cv2.imread(os.path.join(folder,frames[i]))
-                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                    img=frame_results[cur_frame].plot()
+                    img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
+                    img = frame_results[cur_frame].plot()
 
                     frame = img
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
@@ -262,6 +255,7 @@ def main():
                     # Uncomment to test the time spent on each frame by the program
                     # To unlimit fps, change fps variable to 1000 or something high like that
                     # print(time.time()-t)
+
                 # Catch errors and use for restarting (from pause)
                 except Exception as e:
                     if str(e) == 'RestartVideo':
@@ -269,21 +263,14 @@ def main():
                         paused = True
                         slider_elem.update(cur_frame)
                         # img_elem.update(data=None)
-
                     elif str(e) == 'CloseWindow':
                         break
                     else:
                         print(e)
 
-
-    
-
-        #elif event in ():
         if event in ('Cancel', 'Back'):
-            pcap = []
-            json = []
             frames = []
-
+            lidar.resetScene()
             window.close()
             window = set_layout('startup')
 
@@ -292,8 +279,9 @@ def main():
             window.close()
             break
             
-            
     return 0
+
+
 
 if __name__ == '__main__':
     sg.theme('DarkAmber')

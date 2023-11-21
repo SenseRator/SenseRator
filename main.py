@@ -126,6 +126,7 @@ def folder_select(window):
             folderCam = values['-IMGS-']
             folderLid = values['-PCS-']
 
+            # Image folder changed, update time text
             if (event == '-IMGS-'):
                 n = len(os.listdir(folderCam))
                 time = [int(n/600), int((n/10)%60)]
@@ -224,15 +225,18 @@ def main():
                     if event in ('Cancel', None, 'Exit', 'Back'):
                         break
 
+                    # Update image to slider
                     if int(values['-SLIDER-']) != cur_frame-1 and cur_frame != 0:
                         cur_frame = int(values['-SLIDER-'])
 
+                    # Update slider
                     slider_elem.update(cur_frame)
                     cur_frame = (cur_frame + 1)%(frames.size-3)
                     
                     # img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
                     img = frame_results[cur_frame].plot()
 
+                    # Load image and cloud frames
                     frame = img
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)

@@ -132,10 +132,11 @@ def initWindow(folder=None, setting=None):
 	vis.show_ground = True
 	if (folder != None):
 		vis.show_settings = False
+		
 	# Rotate camera so its facing the correct direction
 	vis.setup_camera(60.0, [0,0,0], [8,4,0], [1,1,0])
 
-	# TODO: Rotate skybox or point cloud so they are aligned (Or just ignore skybox idk)
+	# Rotate point cloud to be aligned with skybox
 	rotation = point_cloud.get_rotation_matrix_from_xyz((-np.pi/2, 0, 0))
 
 	# Import files to show

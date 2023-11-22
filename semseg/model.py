@@ -1,6 +1,5 @@
 import torch
 import torchvision
-import pandas as pd
 import numpy as np
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 

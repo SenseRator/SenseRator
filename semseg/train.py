@@ -5,7 +5,7 @@ import albumentations as A
 from torch.utils.data import DataLoader
 from torchmetrics.detection import MeanAveragePrecision
 from dataset import LocalCarImageDataset, collate, load_annotations
-from semseg.model import create_deeplabv3, get_optimizer, get_loss, get_binary
+from .model import create_deeplabv3, get_optimizer, get_loss, get_binary
 from torch.profiler import profile, ProfilerActivity
 from torch.utils.data import Subset
     

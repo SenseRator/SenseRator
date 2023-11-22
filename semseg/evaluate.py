@@ -7,7 +7,7 @@ import os
 from torchmetrics.classification import MultilabelAccuracy,MulticlassConfusionMatrix
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from dataset import LocalCarImageDataset, collate
-from semseg.model import get_binary, invert_y, create_deeplabv3
+from .model import get_binary, invert_y, create_deeplabv3
 from dataset import load_annotations
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader

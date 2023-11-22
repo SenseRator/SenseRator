@@ -9,6 +9,7 @@ from ultralytics import YOLO
 import torch
 import lidar
 import convertImage
+from semseg import segment
 
 def programEnd():
     print('Bye bye')
@@ -190,6 +191,7 @@ def main():
     # RGB video frames
     frames = []
 
+    # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
 
 
@@ -213,10 +215,14 @@ def main():
             window.close()
             window = set_layout('processing', [frames.size])
             progress_bar = window['-PROGRESS BAR-']
-            
+
+
             for i in range(frames.size):
+                # Segment & Save Masks
+                segment(frames[i], folder)
                 # Convert images to rgb (cv2 frames). Run predictions on frame. Add results to list.
                 img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
+
                 results = model.predict(img, show= True, show_conf=True, conf=0.8, device=device)
                 frame_results.append(results[0])
 

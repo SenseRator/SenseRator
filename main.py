@@ -23,6 +23,9 @@ frame_results = []
 # Object detection model. 
 model = YOLO('model.pt')
 
+# TODO initialize semantic segmentation
+# Semantic Segmentation
+
 def timestamp(filename):
     ts = filename.split('_')[1:]
     ts = ts[:5]+ts[5].split('.')[:2]
@@ -213,6 +216,10 @@ def main():
                 results = model.predict(img, show= True, device=0,show_conf=True, conf=0.8)
                 frame_results.append(results[0])
 
+                # TODO do semantic segmentation on frames[i], save as "SemSeg_<filename>" in folder: window['-FOLDER-']+'/semseg'
+                # frames[i] is the filename, the filepath is window['-FOLDER-']+'/jpg/'
+                
+
                 # Grab lidar frame
                 lidar.readFile(i)
 
@@ -281,6 +288,7 @@ def main():
                     frame = img
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
+                    # TODO load in semantic segmented image and encode to bytes, pass to img_elem2
                     img_elem2.update(data=im_bytes)
                     lidar.readFile(cur_frame)
 

@@ -38,7 +38,7 @@ def set_layout(state, info = []):
     sg.theme('DarkAmber')
     
     # Defines the dropdown menu
-    menu_def = [['&Help', ['&About']]]
+    menu_def = [['Menu', ['About', 'Help']]]
 
     # Window Layout
     layout = [
@@ -50,6 +50,20 @@ def set_layout(state, info = []):
         layout += [
             [sg.Text('Select Vehicle Output Folder')],
             [sg.Button('Open Folder')]
+        ]
+
+    elif state in ('about'):
+        layout += [
+            [sg.Text('A small electric vehicle affixed with sensors for the purpose of disaster management and terrain mapping. Using cameras and LIDAR, the vehicle’s purpose is to collect data from those sensors, combine it, input the data in a machine-learning algorithm and output insight on the current state of the environment for use in rescue efforts.', size = (100,4), justification = 'center')],
+            [sg.Push(), sg.Button('Close'), sg.Push()]
+        ]
+
+    elif state in ('help'):
+        layout += [
+            [sg.Text('Images are in .jpg format. Point clouds can be in .pcd, .ply, or .pcap formats. If .pcap is selected, it will be automatically unpacked into .pcd.', size = (100,2), justification = 'center')],
+            [sg.Text('When the object detection is done processing, you will be able to traverse through the video, pause, play, and restart. The clouds will update along with the video.', size = (100,2), justification = 'center')],
+            [sg.Text('To close the entire program, close all windows or tap the [esc] key. (It may take a second)', size = (100,2), justification = 'center')],
+            [sg.Push(), sg.Button('Close'), sg.Push()]
         ]
 
     elif state in ('folder select'):
@@ -171,8 +185,13 @@ def main():
         
         event, values = window.read()
         
+        # End of Program
+        if event in (None, 'Exit', sg.WIN_CLOSED):
+            window.close()
+            break
+
         # Open output folder from vehicle
-        if event in ('Open Folder'):
+        elif event in ('Open Folder'):
             folder, frames, window = folder_select(window)
 
         # Process images and pcap file from vehicle output
@@ -213,10 +232,24 @@ def main():
                         # Read events while paused
                         if event in (sg.WIN_CLOSED, 'Cancel', 'Back'):
                             raise Exception('CloseWindow')
-                        if event == '-PLAY-':
+                        elif event == '-PLAY-':
                             paused = False
-                        if event == '-RESTART-':
+                        elif event == '-RESTART-':
                             raise Exception('RestartVideo')
+                        elif event in ('About'):
+                            about_window = set_layout('about')
+                            while True:
+                                event, values = about_window.read()
+                                if event in (None, 'Close', sg.WIN_CLOSED):
+                                    about_window.close()
+                                    break
+                        elif event in ('Help'):
+                            help_window = set_layout('help')
+                            while True:
+                                event, values = help_window.read()
+                                if event in (None, 'Close', sg.WIN_CLOSED):
+                                    help_window.close()
+                                    break
 
                     t = time.time()
                     dur = timestamp(frames[cur_frame+1]) - timestamp(frames[cur_frame])
@@ -246,8 +279,22 @@ def main():
                     try:
                         if event == '-PAUSE-':
                             paused = True
-                        if event == '-RESTART-':
+                        elif event == '-RESTART-':
                             raise Exception('RestartVideo')
+                        elif event in ('About'):
+                            about_window = set_layout('about')
+                            while True:
+                                event, values = about_window.read()
+                                if event in (None, 'Close', sg.WIN_CLOSED):
+                                    about_window.close()
+                                    break
+                        elif event in ('Help'):
+                            help_window = set_layout('help')
+                            while True:
+                                event, values = help_window.read()
+                                if event in (None, 'Close', sg.WIN_CLOSED):
+                                    help_window.close()
+                                    break
                     # Catch errors and use for restarting
                     except Exception as e:
                         if str(e) == 'RestartVideo':
@@ -279,16 +326,27 @@ def main():
                     else:
                         print(e)
 
-        if event in ('Cancel', 'Back'):
+        elif event in ('About'):
+            about_window = set_layout('about')
+            while True:
+                event, values = about_window.read()
+                if event in (None, 'Close', sg.WIN_CLOSED):
+                    about_window.close()
+                    break
+
+        elif event in ('Help'):
+            help_window = set_layout('help')
+            while True:
+                event, values = help_window.read()
+                if event in (None, 'Close', sg.WIN_CLOSED):
+                    help_window.close()
+                    break
+
+        elif event in ('Cancel', 'Back'):
             frames = []
             lidar.resetScene()
             window.close()
             window = set_layout('startup')
-
-        # End of Program
-        if event in (None, 'Exit', sg.WIN_CLOSED):
-            window.close()
-            break
             
     return 0
 

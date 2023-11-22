@@ -15,7 +15,7 @@ def programEnd():
     sys.exit()
 keyboard.add_hotkey('esc', programEnd)
 
-resize = (820,615) # 4:3 ratio
+resize = (600,450) # 4:3 ratio #Change to 820,615) if there is no semantic segmentation
 
 # Stores object detections information as YOLO results objects
 frame_results = []
@@ -68,14 +68,9 @@ def set_layout(state, info = []):
 
     elif state in ('folder select'):
         layout += [
-            [sg.Frame('Images', [
-                [sg.InputText(key='-IMGS-', change_submits=True), 
-                 sg.FolderBrowse(target='-IMGS-')]] )],
-            [sg.Frame('Point Clouds', [
-                [sg.Push(), sg.Radio('.pcd/.ply', 0, default=True), 
-                 sg.Push(), sg.Radio('.pcap', 0), sg.Push()], 
-                [sg.InputText(key='-PCS-', change_submits=True), 
-                 sg.FolderBrowse(target='-PCS-')]] )],
+            [sg.Frame('Input Folder', [
+                [sg.InputText(key='-FOLDER-', change_submits=True), 
+                 sg.FolderBrowse(target='-FOLDER-')]] )],
             [sg.Text(key='-UPDATE-')],
             [sg.Button('Ok'), sg.Button('Cancel'), sg.Push()]
         ]
@@ -100,7 +95,8 @@ def set_layout(state, info = []):
     elif state in ('object detected'):
         num_frames = info[0]
         layout += [
-            [sg.Image(key='-IMAGE-', size=resize, background_color='black')],
+            [sg.Image(key='-IMAGE-', size=resize, background_color='black')], 
+            [sg.Image(key='-IMAGE2-', size=resize, background_color='white')],
             [sg.Slider(range=(0,num_frames-1), size=(60,10), orientation='h', key = '-SLIDER-')],
             [ImageButton('Restart', key='-RESTART-'), 
              ImageButton('Pause', key='-PAUSE-'),
@@ -137,14 +133,18 @@ def folder_select(window):
         event, values = window.read()
 
         try:
-            folderCam = values['-IMGS-']
-            folderLid = values['-PCS-']
+            folderCam = values['-FOLDER-']+'/jpg'
+            folderLid = values['-FOLDER-']+'/pcd'
 
-            # Image folder changed, update time text
-            if (event == '-IMGS-'):
-                n = len(os.listdir(folderCam))
-                time = [int(n/600), int((n/10)%60)]
-                window['-UPDATE-'].update('The selected folder has ' + str(n) + ' frames, totalling ' + '{}:{:02d}'.format(time[0],time[1]) + ' of video.')
+            #print(folderCam)
+            #print(os.listdir(folderCam))
+            #print(folderLid)
+
+            if (event == '-FOLDER-'):
+                dir = os.listdir(folderCam)
+                n = len(dir)
+                time = timestamp(dir[n-3]) - timestamp(dir[0])
+                window['-UPDATE-'].update('The selected folder has ' + str(n) + ' frames, totalling ' + '{}:{:.0f}'.format(int(time/60), time%60) + ' of video.')
             
             if (event == 'Ok'):
                 window['-UPDATE-'].update('Loading...')
@@ -153,7 +153,8 @@ def folder_select(window):
                 if folderLid in (None, ''):
                     window['-UPDATE-'].update('No point cloud folder selected.')
                 else:
-                    lidar.initWindow(folderLid, values[0])
+                    print("VALUES")
+                    lidar.initWindow(folderLid)
 
                 files = np.asarray(os.listdir(folderCam))
                 size = files.size
@@ -166,10 +167,15 @@ def folder_select(window):
             if event in ('Cancel', sg.WIN_CLOSED):
                 window.close()
                 window = set_layout('folder selected', [frames.size])
+                raise Exception ('Window Closed')
+
         except Exception as e:
+            if str(e) == 'Window Closed':
+                programEnd()
             window['-UPDATE-'].update('Something went wrong.')
             print(e)
-    
+            print(values)
+    print("debug")
     window.close()
     window = set_layout('folder selected', [frames.size])
     return folderCam, frames, window
@@ -191,7 +197,8 @@ def main():
             break
 
         # Open output folder from vehicle
-        elif event in ('Open Folder'):
+        if event in ('Open Folder'):
+            window.close()
             folder, frames, window = folder_select(window)
 
         # Process images and pcap file from vehicle output
@@ -216,6 +223,7 @@ def main():
             window = set_layout('object detected', [frames.size])
 
             img_elem = window['-IMAGE-']
+            img_elem2 = window['-IMAGE2-']
             img_test = img_elem
             slider_elem = window['-SLIDER-']
            
@@ -273,6 +281,7 @@ def main():
                     frame = img
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
+                    img_elem2.update(data=im_bytes)
                     lidar.readFile(cur_frame)
 
                     # Read events while playing
@@ -303,7 +312,7 @@ def main():
                             slider_elem.update(cur_frame)
                             # img_elem.update(data=None, visible=True)
                         else:
-                            print(e)
+                            print(str(e))
 
                     # Limits FPS by counting the seconds spent on each frame
                     while(time.time()-t < dur):
@@ -322,7 +331,7 @@ def main():
                         slider_elem.update(cur_frame)
                         # img_elem.update(data=None)
                     elif str(e) == 'CloseWindow':
-                        break
+                        programEnd()
                     else:
                         print(e)
 
@@ -347,6 +356,11 @@ def main():
             lidar.resetScene()
             window.close()
             window = set_layout('startup')
+
+        # End of Program
+        if event in (None, 'Exit', sg.WIN_CLOSED):
+            window.close()
+            programEnd()
             
     return 0
 

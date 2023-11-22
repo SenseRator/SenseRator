@@ -1,6 +1,11 @@
-__pycache__/
+*.pcap
+*.ply
+*.pcd
+*.raw
+package-lock.json
+__pycache__/*.pyc
 *.pyc
 venv/
 .venv/
-data/camvid/images/*
-data/camvid/labels/*
+data/*
+processed_masks/*

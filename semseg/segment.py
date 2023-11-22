@@ -3,7 +3,7 @@ import numpy as np
 from torchvision.io import read_image
 from torchvision.transforms import Normalize, Resize, Compose
 import matplotlib.pyplot as plt
-from semseg.model import create_deeplabv3
+from .model import create_deeplabv3
 import os
 import pandas as pd
 import cv2
@@ -65,10 +65,10 @@ def draw_labels_on_mask(mask, labels_df, class_colors):
     
     return labeled_mask
 
-def segment(filepath): 
+def segment(filename, folder): 
     # Directory to load images from and save masks to
-    input_dir = "./data/sr_capture"
-    output_dir = "./data/processed_masks"
+    input_dir = folder
+    output_dir = "./processed_masks"
     os.makedirs(output_dir, exist_ok=True)
 
     # Define our labels
@@ -78,89 +78,45 @@ def segment(filepath):
 
     # Load the trained model
     model = create_deeplabv3(output_channels=len(labels_df))
-    state_dict = torch.load("deeplabv3_model.pt", map_location=torch.device('cpu'))
+    # state_dict = torch.load("./deeplabv3_model.pt", map_location=torch.device('cpu'))
+    model_path = os.path.join(os.path.dirname(__file__), 'deeplabv3_model.pt')
+    state_dict = torch.load(model_path, map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
     model.eval()
 
-    # Iterate over all files in the input directory
-    for filename in os.listdir(input_dir):
-        if filename.endswith('.jpg'):  # Check if the file is a JPEG image
-            file_path = os.path.join(input_dir, filename)
+    # Read in a frame (filename) from the input directory
+    if filename.endswith('.jpg'):  # Check if the file is a JPEG image
+        file_path = os.path.join(input_dir, filename)
 
-            # Load and preprocess the input image
-            input_image = read_image(file_path).float() / 255.0
+        # Load and preprocess the input image
+        input_image = read_image(file_path).float() / 255.0
 
-            # Resize and normalize the input image
-            transform = Compose([
-                Resize((720, 960)),  # Resize to the expected input dimensions
-                Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
-            ])
+        # Resize and normalize the input image
+        transform = Compose([
+            Resize((720, 960)),  # Resize to the expected input dimensions
+            Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+        ])
 
-            input_image = transform(input_image)
+        input_image = transform(input_image)
 
-            # Add a batch dimension and send the image to the model
-            input_image = input_image.unsqueeze(0)
-            with torch.no_grad():
-                output_mask = model(input_image)['out'][0]
+        # Add a batch dimension and send the image to the model
+        input_image = input_image.unsqueeze(0)
+        with torch.no_grad():
+            output_mask = model(input_image)['out'][0]
 
-            # Convert the output mask to class indices and then to a color mask
-            output_mask_class_indices = output_mask.argmax(0)
-            predicted_mask_rgb = invert_y(output_mask_class_indices, index_to_rgb)
-            class_colors = {index: (int(b), int(g), int(r)) for index, r, g, b in zip(labels_df.index, labels_df['r'], labels_df['g'], labels_df['b'])}
+        # Convert the output mask to class indices and then to a color mask
+        output_mask_class_indices = output_mask.argmax(0)
+        predicted_mask_rgb = invert_y(output_mask_class_indices, index_to_rgb)
+        class_colors = {index: (int(b), int(g), int(r)) for index, r, g, b in zip(labels_df.index, labels_df['r'], labels_df['g'], labels_df['b'])}
 
+        # Overlay labels on the segmentation mask
+        labeled_mask = draw_labels_on_mask(output_mask_class_indices.numpy(), labels_df, class_colors)
 
-            # Overlay labels on the segmentation mask
-            labeled_mask = draw_labels_on_mask(output_mask_class_indices.numpy(), labels_df, class_colors)
+        # Combine the labeled mask with the color mask for visualization
+        combined_mask = cv2.addWeighted(predicted_mask_rgb.astype(np.uint8), 0.5, labeled_mask, 0.5, 0)
 
-            # Combine the labeled mask with the color mask for visualization
-            combined_mask = cv2.addWeighted(predicted_mask_rgb.astype(np.uint8), 0.5, labeled_mask, 0.5, 0)
+        # Save the combined mask
+        save_path = os.path.join(output_dir, f'SemSeg_{filename}')
+        Image.fromarray(combined_mask).save(save_path)
 
-            # Save the combined mask
-            save_path = os.path.join(output_dir, f'SemSeg_{filename}')
-            Image.fromarray(combined_mask).save(save_path)
-
-    print("All masks processed and saved.")
-
-
-
-
-
-
-# # Load and preprocess the input image
-# input_image_path = "./data/sr_capture/lidar_2023_11_18_15_49_03.8274.jpg"
-# input_image = read_image(input_image_path).float() / 255.0
-
-
-# input_image = transform(input_image)
-
-# # Add a batch dimension and send the image to the model
-# input_image = input_image.unsqueeze(0)
-# with torch.no_grad():
-#     output_mask = model(input_image)['out'][0]
-
-# # Convert the output mask to class indices and then to a color mask
-# output_mask_class_indices = output_mask.argmax(0)
-# predicted_mask_rgb = invert_y(output_mask_class_indices, index_to_rgb)
-
-# class_colors = {index: (int(b), int(g), int(r)) for index, r, g, b in zip(labels_df.index, labels_df['r'], labels_df['g'], labels_df['b'])}
-
-# # Overlay labels on the segmentation mask
-# labeled_mask = draw_labels_on_mask(output_mask_class_indices.numpy(), labels_df, class_colors)
-
-# # Combine the labeled mask with the color mask for visualization
-# combined_mask = cv2.addWeighted(predicted_mask_rgb.astype(np.uint8), 0.5, labeled_mask, 0.5, 0)
-
-# # Visualize the input image and predicted segmentation mask with labels
-# plt.figure(figsize=(12, 6))
-
-# plt.subplot(1, 2, 1)
-# plt.imshow(input_image.squeeze(0).permute(1, 2, 0).numpy())
-# plt.title("Input Image")
-
-# plt.subplot(1, 2, 2)
-# plt.imshow(combined_mask)
-# plt.title("Predicted Segmentation Mask with Labels")
-# folder_name = 'evaluation_results'
-# plt.savefig(os.path.join(folder_name, f'predicted_mask_with_labels_2.png'))
-
-# plt.show()
+    print(f"Mask {save_path} processed and saved.")

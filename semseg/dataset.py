@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 import torch
-import logging
 from torchvision.io import read_image
 from torchvision.transforms import Normalize
 from torch.utils.data import Dataset

@@ -21,7 +21,7 @@ resize = (600,450) # 4:3 ratio #Change to 820,615) if there is no semantic segme
 frame_results = []
 
 # Object detection model. 
-model = YOLO('model.pt')
+model = YOLO('final.pt')
 
 # TODO initialize semantic segmentation
 # Semantic Segmentation
@@ -213,7 +213,7 @@ def main():
             for i in range(frames.size):
                 # Convert images to rgb (cv2 frames). Run predictions on frame. Add results to list.
                 img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
-                results = model.predict(img, show= True, device=0,show_conf=True, conf=0.8)
+                results = model.predict(img, show= False, device=0,show_conf=True, conf=0.77)
                 frame_results.append(results[0])
 
                 # TODO do semantic segmentation on frames[i], save as "SemSeg_<filename>" in folder: window['-FOLDER-']+'/semseg'

@@ -68,7 +68,7 @@ def draw_labels_on_mask(mask, labels_df, class_colors):
 def segment(filename, folder): 
     # Directory to load images from and save masks to
     input_dir = folder
-    output_dir = "./processed_masks"
+    output_dir = folder[:len(folder)-3]+"processed_masks"
     os.makedirs(output_dir, exist_ok=True)
 
     # Define our labels

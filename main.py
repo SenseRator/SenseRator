@@ -13,7 +13,7 @@ from semseg import segment
 
 def programEnd():
     print('Bye bye')
-    sys.exit()
+    sys.exit(0)
 keyboard.add_hotkey('esc', programEnd)
 
 resize = (600,450) # 4:3 ratio #Change to 820,615) if there is no semantic segmentation
@@ -188,6 +188,7 @@ def folder_select(window):
 def main():
     window = set_layout('startup')
     folder = ''
+    semseg_folder = ''
     # RGB video frames
     frames = []
 
@@ -241,6 +242,9 @@ def main():
 
             img_elem = window['-IMAGE-']
             img_elem2 = window['-IMAGE2-']
+
+            semseg_folder = folder.split('/')
+            semseg_folder = '/'.join(semseg_folder[:len(semseg_folder)-1])+'/processed_masks'
             img_test = img_elem
             slider_elem = window['-SLIDER-']
            
@@ -299,7 +303,10 @@ def main():
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
                     # TODO load in semantic segmented image and encode to bytes, pass to img_elem2
-                    img_elem2.update(data=im_bytes)
+                    im2_bytes = cv2.imencode('.png', cv2.resize(cv2.imread(semseg_folder+'/SemSeg_'+frames[cur_frame]), resize))[1].tobytes()
+                    img_elem2.update(data=im2_bytes)
+
+
                     lidar.readFile(cur_frame)
 
                     # Read events while playing

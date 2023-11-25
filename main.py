@@ -10,9 +10,32 @@ from ultralytics import YOLO
 import lidar
 import convertImage
 
+#For demo purposes only. File path to semseg masks
+semseg_path=r'C:\Users\whudd\OneDrive\Desktop\SenseRator\SenseRator\processed_masks'
+
+semseg_files = [f for f in os.listdir(semseg_path) if os.path.isfile(os.path.join(semseg_path, f))]
+
+# Sort the files to ensure they are in the correct order
+semseg_files.sort()
+
+# Create an array to store the CV2 frames
+semseg_frames = []
+
+# Load each image as a CV2 frame and add it to the array
+for file in semseg_files:
+    file_path = os.path.join(semseg_path, file)
+    frame = cv2.imread(file_path)
+
+    if frame is not None:
+        resized_frame = cv2.resize(frame, (600, 450))
+        semseg_frames.append(resized_frame)
+    else:
+        print(f"Failed to read image: {file_path}")
+
+
 def programEnd():
     print('Bye bye')
-    sys.exit()
+    sys.exit(). _exit()
 keyboard.add_hotkey('esc', programEnd)
 
 resize = (600,450) # 4:3 ratio #Change to 820,615) if there is no semantic segmentation
@@ -161,7 +184,7 @@ def folder_select(window):
 
                 files = np.asarray(os.listdir(folderCam))
                 size = files.size
-                frames = files[0:size-3]
+                frames = files[0:]
                 if folderCam in (None, ''):
                     window['-UPDATE-'].update('No image folder selected.')
                 else:
@@ -213,7 +236,7 @@ def main():
             for i in range(frames.size):
                 # Convert images to rgb (cv2 frames). Run predictions on frame. Add results to list.
                 img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
-                results = model.predict(img, show= False, device=0,show_conf=True, conf=0.77)
+                results = model.predict(img, show= True, device=0,show_conf=True, conf=0.77)
                 frame_results.append(results[0])
 
                 # TODO do semantic segmentation on frames[i], save as "SemSeg_<filename>" in folder: window['-FOLDER-']+'/semseg'
@@ -288,8 +311,12 @@ def main():
                     frame = img
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
-                    # TODO load in semantic segmented image and encode to bytes, pass to img_elem2
-                    img_elem2.update(data=im_bytes)
+                    semseg_frame = semseg_frames[cur_frame]
+                    semseg_im_bytes = cv2.imencode('.png', semseg_frame)[1].tobytes()
+
+                    # Update img_elem2 with the semantic segmented image
+                    img_elem2.update(data=semseg_im_bytes)
+
                     lidar.readFile(cur_frame)
 
                     # Read events while playing

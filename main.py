@@ -11,7 +11,7 @@ import lidar
 import convertImage
 
 #For demo purposes only. File path to semseg masks
-semseg_path=r'C:\Users\whudd\OneDrive\Desktop\SenseRator\SenseRator\processed_masks'
+semseg_path=r'c:\Users\gabys\Desktop\Senior Design\Car Data\processed_masks'
 
 semseg_files = [f for f in os.listdir(semseg_path) if os.path.isfile(os.path.join(semseg_path, f))]
 
@@ -236,7 +236,7 @@ def main():
             for i in range(frames.size):
                 # Convert images to rgb (cv2 frames). Run predictions on frame. Add results to list.
                 img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
-                results = model.predict(img, show= True, device=0,show_conf=True, conf=0.77)
+                results = model.predict(img, show= True, device=0,show_conf=True, conf=0.61)
                 frame_results.append(results[0])
 
                 # TODO do semantic segmentation on frames[i], save as "SemSeg_<filename>" in folder: window['-FOLDER-']+'/semseg'

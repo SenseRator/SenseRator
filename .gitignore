@@ -4,3 +4,6 @@
 *.raw
 package-lock.json
 __pycache__/*.pyc
+__pycache__/convertCloud.cpython-39.pyc
+__pycache__/convertImage.cpython-39.pyc
+__pycache__/windows.cpython-39.pyc

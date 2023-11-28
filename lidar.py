@@ -7,7 +7,6 @@ import PySimpleGUI as sg
 import open3d.visualization.gui as gui
 import open3d.visualization.rendering as rendering
 
-import main
 import windows
 import convertCloud
 
@@ -122,8 +121,6 @@ def initWindow(folder=None, setting=None):
 	# Create point cloud window
 	vis = o3d.visualization.O3DVisualizer("Lidar Data", 1000, 700)
 	vis.add_action("Custom Options", windows.options)
-	# vis.add_action("Video Player", windows.mediaPlayer)
-	# vis.add_action("Video Player 2.0", main.main)
 
 	# Show & setup window
 	app.add_window(vis)

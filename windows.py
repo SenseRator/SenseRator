@@ -20,7 +20,6 @@ optionsLayout = [[sg.Text("This is a settings menu")],
 					[sg.Text("Show Skybox"), sg.Checkbox('', True, s=(3,3), enable_events=True)],
 					[sg.Text("Point Size"), sg.Slider((1,10), 3, 1, orientation='h', enable_events=True)],
 					[sg.Text("Shader"), sg.Combo(['Standard', 'Unlit', 'Normals', 'Depth'], 'Standard', enable_events=True)],
-					[sg.Text("Lighting ???")],
 					[sg.Text(key='-UPDATE-')],
 					[sg.Submit(), sg.Cancel()]]
 

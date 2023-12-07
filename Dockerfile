@@ -1,3 +1,6 @@
+# This docker file is not up-to-date. 
+# TODO: Update Docker File, and create a requirements.txt which is functioning.
+
 # Use the official Python image from the DockerHub
 FROM python:3.10.12
 

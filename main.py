@@ -5,15 +5,17 @@ import time
 import keyboard
 import numpy as np
 import PySimpleGUI as sg
-from ultralytics import YOLO
 import torch
 import lidar
 import convertImage
-from semseg import segment
+import pandas as pd
+from ultralytics import YOLO
+from semseg import create_deeplabv3, segment
+import semseg
 
 def programEnd():
     print('Bye bye')
-    sys.exit()
+    sys.exit(0)
 keyboard.add_hotkey('esc', programEnd)
 
 resize = (600,450) # 4:3 ratio #Change to 820,615) if there is no semantic segmentation
@@ -22,11 +24,7 @@ resize = (600,450) # 4:3 ratio #Change to 820,615) if there is no semantic segme
 frame_results = []
 
 # Object detection model. 
-model = YOLO('model.pt')
-
-# TODO initialize semantic segmentation
-# Semantic Segmentation
-
+model = YOLO('final.pt')
 
 def timestamp(filename):
     ts = filename.split('_')[1:]
@@ -36,7 +34,7 @@ def timestamp(filename):
     return s
 
 def ImageButton(title, key):
-	return sg.Button(title, border_width=0, key=key)
+    return sg.Button(title, border_width=0, key=key)
 
 # Set up various layouts to be called later
 def set_layout(state, info = []):
@@ -188,16 +186,27 @@ def folder_select(window):
 def main():
     window = set_layout('startup')
     folder = ''
+    semseg_folder = ''
     # RGB video frames
     frames = []
 
     # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
 
+    # Define our labels
+    labels_df = pd.read_csv("./data/class_dict.csv")
+    labels_df['index'] = range(len(labels_df))  # Add an index column
+
+    # Load the trained SemSeg model
+    seg_model = create_deeplabv3(output_channels=len(labels_df))
+    seg_model_path = os.path.join(os.path.dirname(semseg.__file__), 'deeplabv3_model.pt')
+    seg_state_dict = torch.load(seg_model_path, map_location='cuda' if torch.cuda.is_available() else 'cpu')
+    seg_model.load_state_dict(seg_state_dict)
+    seg_model = model.to('cuda' if torch.cuda.is_available() else 'cpu')
+    seg_model.eval()
 
     # Event Loop
     while True:
-        
         event, values = window.read()
         
         # End of Program
@@ -219,11 +228,11 @@ def main():
 
             for i in range(frames.size):
                 # Segment & Save Masks
-                segment(frames[i], folder)
+                segment(frames[i], folder, model)
                 # Convert images to rgb (cv2 frames). Run predictions on frame. Add results to list.
                 img = convertImage.rgbJpg(os.path.join(folder,frames[i]), resize)
 
-                results = model.predict(img, show= True, show_conf=True, conf=0.8, device=device)
+                results = model.predict(img, show= True, show_conf=True, conf=0.77, device=device)
                 frame_results.append(results[0])
 
                 # TODO do semantic segmentation on frames[i], save as "SemSeg_<filename>" in folder: window['-FOLDER-']+'/semseg'
@@ -241,6 +250,9 @@ def main():
 
             img_elem = window['-IMAGE-']
             img_elem2 = window['-IMAGE2-']
+
+            semseg_folder = folder.split('/')
+            semseg_folder = '/'.join(semseg_folder[:len(semseg_folder)-1])+'/processed_masks'
             img_test = img_elem
             slider_elem = window['-SLIDER-']
            
@@ -299,7 +311,10 @@ def main():
                     im_bytes = cv2.imencode('.png', frame)[1].tobytes()
                     img_elem.update(data=im_bytes)
                     # TODO load in semantic segmented image and encode to bytes, pass to img_elem2
-                    img_elem2.update(data=im_bytes)
+                    im2_bytes = cv2.imencode('.png', cv2.resize(cv2.imread(semseg_folder+'/SemSeg_'+frames[cur_frame]), resize))[1].tobytes()
+                    img_elem2.update(data=im2_bytes)
+
+
                     lidar.readFile(cur_frame)
 
                     # Read events while playing

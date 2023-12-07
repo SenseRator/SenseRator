@@ -65,24 +65,16 @@ def draw_labels_on_mask(mask, labels_df, class_colors):
     
     return labeled_mask
 
-def segment(filename, folder): 
+def segment(filename, folder, model): 
     # Directory to load images from and save masks to
     input_dir = folder
-    output_dir = "./processed_masks"
+    output_dir = folder[:len(folder)-3]+"processed_masks"
     os.makedirs(output_dir, exist_ok=True)
 
     # Define our labels
     labels_df = pd.read_csv("./data/class_dict.csv")
     labels_df['index'] = range(len(labels_df))  # Add an index column
     index_to_rgb = {index: [r, g, b] for index, r, g, b in zip(labels_df.index, labels_df['r'], labels_df['g'], labels_df['b'])}
-
-    # Load the trained model
-    model = create_deeplabv3(output_channels=len(labels_df))
-    # state_dict = torch.load("./deeplabv3_model.pt", map_location=torch.device('cpu'))
-    model_path = os.path.join(os.path.dirname(__file__), 'deeplabv3_model.pt')
-    state_dict = torch.load(model_path, map_location=torch.device('cpu'))
-    model.load_state_dict(state_dict)
-    model.eval()
 
     # Read in a frame (filename) from the input directory
     if filename.endswith('.jpg'):  # Check if the file is a JPEG image
@@ -105,7 +97,7 @@ def segment(filename, folder):
             output_mask = model(input_image)['out'][0]
 
         # Convert the output mask to class indices and then to a color mask
-        output_mask_class_indices = output_mask.argmax(0)
+        output_mask_class_indices = output_mask.argmax(0).to('cpu') 
         predicted_mask_rgb = invert_y(output_mask_class_indices, index_to_rgb)
         class_colors = {index: (int(b), int(g), int(r)) for index, r, g, b in zip(labels_df.index, labels_df['r'], labels_df['g'], labels_df['b'])}
 

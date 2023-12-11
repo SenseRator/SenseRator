@@ -4,6 +4,7 @@ import time
 import gui_utils
 import os
 import PySimpleGUI as sg
+import sys
 
 # Code Imports
 from lidar_utils import readFile
@@ -37,6 +38,11 @@ class VideoPlayer:
         self.cur_frame = 0
         self.update_slider()
         self.paused = True
+
+    def stop_video(self):
+        self.paused = True
+        print('Bye bye')
+        sys.exit(0)
 
     def update_frame(self):
         if self.cur_frame >= len(self.frames):

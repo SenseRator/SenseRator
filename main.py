@@ -40,11 +40,28 @@ def main():
     # Main event loop
     while True:
         event, values = window.read(timeout=100)
-
+        
         if event in (None, 'Exit', sg.WIN_CLOSED):
             if video_player is not None: 
-                video_player.stop_video()
-            break
+                video_player.stop_video()        
+            
+        elif event == '-SLIDER-': 
+            print("Slider is being moved.")
+            # When the slider is moved, update images to that frame
+            new_frame_index = int(values['-SLIDER-'])
+            video_player.update_images_to_slider(new_frame_index)
+
+        if event == '-PLAY-':
+            print("Play button pressed.")
+            video_player.play_video()
+        
+        elif event == '-PAUSE-':
+            print("Pause button pressed.")
+            video_player.pause_video()
+        
+        elif event == '-RESTART-':
+            print("Video restarted.")
+            video_player.restart_video()
 
         if event == 'Open Folder':
             # Folder selection
@@ -58,13 +75,8 @@ def main():
             window.close()
             window, _ = set_layout('processing', [len(frames)])
             progress_bar = window['-PROGRESS BAR-']
-
-            # Debug
-            # print("Calling process_images_and_pcap...")
             object_results, seg_paths = process_images_and_pcap(folder, frames, object_detection_model, semantic_segmentation_model, progress_bar)
-            # Debug
-            # print("Finished process_images_and_pcap")
-
+            
             # Update GUI after processing
             window.close()
             window, _ = set_layout('object detected', [len(frames)])
@@ -83,22 +95,10 @@ def main():
             window.close()
             window, _ = set_layout('startup')
 
-        # Handle video player events
-        if video_player:
-            if event == '-PLAY-':
-                print("Play button pressed.")
-                video_player.play_video()
-            elif event == '-PAUSE-':
-                print("Pause button pressed")
-                video_player.pause_video()
-            elif event == '-RESTART-':
-                print("Restart button pressed")
-                video_player.restart_video()
-
-
     # Close the window and end the program
     window.close()
     programEnd()
+
 
 if __name__ == '__main__':
     sg.theme('DarkAmber')

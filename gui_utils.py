@@ -76,7 +76,7 @@ def set_layout(state, info = []):
         layout += [
             [sg.Image(key='-IMAGE-', size=resize, background_color='black')], 
             [sg.Image(key='-IMAGE2-', size=resize, background_color='white')],
-            [sg.Slider(range=(0,num_frames-1), size=(60,10), orientation='h', key = '-SLIDER-')],
+            [sg.Slider(range=(0,num_frames-1), default_value=0, size=(60,10), orientation='h', enable_events=True, key = '-SLIDER-')],
             [ImageButton('Restart', key='-RESTART-'), 
              ImageButton('Pause', key='-PAUSE-'),
              ImageButton('Play', key='-PLAY-')],

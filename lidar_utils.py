@@ -6,8 +6,6 @@ import open3d as o3d
 import PySimpleGUI as sg
 import open3d.visualization.gui as gui
 import open3d.visualization.rendering as rendering
-
-import main
 import windows
 import convertCloud
 
@@ -67,7 +65,6 @@ def setup_streaming():
 
 	while True:
 		event, values = window.read()
-
 		try:
 			selected_path = values['-FILE-']
 
@@ -89,7 +86,7 @@ def setup_streaming():
 				window.close()
 				return [], ''
 		except Exception as e:
-			window['-UPDATE-'].update('Something went wrong.')
+			window['-UPDATE-'].update('Something went wrong with LIDAR.')
 			print(e)
 
 	window.close()

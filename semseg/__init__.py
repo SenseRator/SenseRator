@@ -1,2 +1,2 @@
 from .segment import segment
-from .model import create_deeplabv3
+from .model import init_semseg_model

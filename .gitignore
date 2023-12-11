@@ -10,3 +10,4 @@ venv/
 data/
 processed_masks/
 runs/
+.idea/

@@ -111,4 +111,10 @@ def segment(filename, folder, model):
         save_path = os.path.join(output_dir, f'SemSeg_{filename}')
         Image.fromarray(combined_mask).save(save_path)
 
-    print(f"Mask {save_path} processed and saved.")
+        print(f"Mask {save_path} processed and saved.")
+
+        # Return the parth of the saved mask.
+        return save_path
+
+    # Handle the case where thef ilename is not a .jpg
+    return None

@@ -1,7 +1,28 @@
+import os
+import pandas as pd
 import torch
 import torchvision
 import numpy as np
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
+
+# Function to initalize the semseg model and put into eval mode. 
+def init_semseg_model(filepath):
+    # Define our labels
+    labels_df = pd.read_csv("./data/class_dict.csv")
+    labels_df['index'] = range(len(labels_df))  # Add an index column
+
+    # Load the trained SemSeg model
+    seg_model = create_deeplabv3(output_channels=len(labels_df))
+    # Set Model path
+    seg_model_path = os.path.join(os.path.dirname(__file__), 'deeplabv3_model.pt')
+    # Load State_dict
+    seg_state_dict = torch.load(seg_model_path, map_location='cuda' if torch.cuda.is_available() else 'cpu')
+    seg_model.load_state_dict(seg_state_dict)
+    # Set device
+    seg_model = seg_model.to('cuda' if torch.cuda.is_available() else 'cpu')
+    seg_model.eval()
+    
+    return seg_model
 
 # Function to modify the DeepLabV3 model to fit the number of classes in the dataset
 def create_deeplabv3(output_channels=32):

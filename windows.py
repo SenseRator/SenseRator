@@ -41,6 +41,7 @@ def options(vis):
 
 	while True:
 		event, values = window.read()
+		print(f"Event: {event}, Values: {values}")
 		# print(event, values)
 
 		try:

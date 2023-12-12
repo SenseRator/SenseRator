@@ -1,3 +1,0 @@
-numpy==1.26.0
-opencv-python==4.8.1.78
-PySDL2==0.9.16

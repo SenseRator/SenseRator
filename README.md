@@ -1,93 +1,120 @@
 # SenseRator
-Senior Design project UCF Spring 2023 - Fall 23.
+![SenseRator arcimoto vehicle](senserator.png)
+
+## Table of Contents
+- [What is SenseRator?](#what-is-senserator?) 
+- [Quick start](#quick-start)
+	- [With Conda](#with-conda)
+- [Usage](#usage)
+- [Data](#data)
+- [Directory Structure](#directory-structure)
+- [Members](#members)
+
+## What is SenseRator? 
+The SenseRator is a small, sensor-equipped electric vehicle designed for disaster management and terrain mapping. This vehicle, equipped with cameras and LIDAR technology, is tasked with gathering comprehensive environmental data. 
+
+The SenseRator is engineered to perform state-of-the-art object detection. It is specifically trained to identify disaster damage, particularly focusing on flooding, potholes, and fallen trees. This is crucial for assessing post-disaster scenarios where such information is vital for rescue and recovery operations.
+
+Additionally, the algorithm integrates the collected data to provide a detailed semantic understanding of the environment, which can be instrumental for planning rescue efforts.
+
+In summary, the SenseRator is an advanced AI-powered sensor platform that can provide immediate, actionable intelligence in disaster-stricken areas.
+
+## Quick Start
+### With Docker
+**WIP**
+### With Conda
+1. Open terminal or Anaconda Prompt
+2. Navigate to the directory containing the `environment.yml` file.
+1. Create the environment using the following command:    
+
+```bash
+conda env create -f environment.yml
+```
+
+This command will set up a new Conda environment identical which should work to run all parts of the project (**with the exception of Open3D / LIDAR.**)
+
+### Without Docker or Conda
+1. [Install CUDA](https://developer.nvidia.com/cuda-downloads)
+    
+2. [Install PyTorch 1.13 or later](https://pytorch.org/get-started/locally/)
+    
+3. Install dependencies
+    
+
+```shell
+pip install -r requirements.txt
+```
+
+4. Download the data and run training:
+
+``` 
+scripts/download_data.sh
+```
+## Usage
+**WIP**
+
+## Data
+The Camvid dataset used for training the semantic segmentation module of the SenseRator project is available on the [Kaggle website](https://www.kaggle.com/datasets/carlolepelaars/camvid). 
+
+You can also download it using the helper script:
+```
+scripts/download_data.sh
+```
+
+The completed data directory should appear as follows: 
+```
+.
+└── data/
+    ├── camvid/
+    │   ├── images
+    │   └── labels
+    ├── train
+    ├── train_labels
+    ├── val
+    ├── val_labels
+    └── class_dict.csv
+```
+
+## Directory Structure
+**WIP: descriptions needed for each element.**
+```
+.
+├── data
+├── datasets
+├── processed_masks
+├── scripts
+├── semseg/
+│   ├── batch_segment.py
+│   ├── dataset.py
+│   ├── evaluate.py
+│   ├── model.py
+│   ├── preprocess_images.py
+│   ├── segment.py
+│   └── train.py
+├── .gitignore
+├── config.py
+├── convertCloud.py
+├── convertImage.py
+├── create_diagrams.py
+├── environment.yml
+├── event_handlers.py
+├── final.pt
+├── gui_utils.py
+├── image_processing.py
+├── lidar_utils.py
+├── main.py
+├── model_weights.pth
+├── object_detection.py
+├── timestamp_utils.py
+├── video_player.py
+└── windows.py
+```
 
 ## Members:
-- Alex Varga - Project Manager
-- Alek Dussuau
-- Gabriela Shamblin
-- Jose Puche
-- Trevor Geiger
+The SenseRator was a Senior Design project at UCF for the Spring 2023 - Fall 2023 semesters. We were delighted to be included in the semi-finalist's showcase. Listed below are the members of our team and their areas of focus for this project. 
 
-# Road Infrastructure Damage Detection Module
-
-Detect damaged road infrastructure using video analysis.
-
-## Overview
-
-This module aims to detect damaged road infrastructure through video file analysis. Using video processing and feature extraction techniques, the goal is to identify and highlight areas of roads that show signs of damage or deterioration.
-
-## Current State
-
-Currently, the project can load and display video files. The next stages involve implementing damage detection through various preprocessing, feature extraction, and post-processing techniques.
-
-## Prerequisites
-
-- Python 3.x
-- OpenCV (cv2)
-- PySDL2
-
-For Debian-based systems, dependencies can be installed using:
-
-bash
-
-`sudo apt-get install python3-opencv pip install pysdl2`
-
-## Usage
-
-Run the main application with:
-bash
-`python3 road_inspector.py`
-
-This will display the video with the filename `test.mp4`. Make sure the video is located in the project's root directory.
-
-### Prepare the Dataset
-
-- Download the [CamVid](https://www.kaggle.com/datasets/carlolepelaars/camvid) dataset from Kaggle and unzip the dataset in `data/camvid` dirs. This directory should contain a `data/camvid/images` folder and a `data/camvid/labels` folder with the respective test images and test labels.  
-
-## Project Structure
-
-- `video_display.py`: Handles the loading and displaying of video files using the SDL2 library.
-- `road_inspector.py`: Main application. Currently, it loads and displays a video. Feature extraction and damage detection will be added here.
-
-## Future Enhancements
-
-1. **Video Preprocessing**: Implement stabilization, denoising, and color normalization.
-2. **Feature Extraction**: Incorporate techniques like edge detection or deep learning models to detect damages.
-4. **Post-processing**: Filter out false positives and aggregate information.
-
-# Acknowledgements
-# Senior Design - SenseRator
-Directory for files is:
-- \Data\pcd_files
-- \Data\ply_files
-- \Data\raw_images
-
----
-
-### SimpleUI Events  
-0: mouse_mode = out  
-1: vis.show_skybox(out)  
-2: point_size = out  
-3: scene_shader = out  
-Reset Camera: vis.reset_camera_to_default()
-
-### Automated Actions
-Add/clear 3d label  
-Add/get/remove/update geometry  
-Raw image/video feed  
-
-### User Actions
-Export current image  
-Mouse mode (movement)  
-Show skybox  
-Point size  
-Scene shader  
-Lighting?  
-Selecting (if time)
-
-### Used Packages
-Numpy  
-Open3D  
-Ouster  
-PySimpleGUI  
-Ultralytics
+- Alex Varga - Project Manager, Front End, Hardware
+- Alek Dussuau - Backend, Data Collection
+- Gabriela Shamblin - Front End, Point Cloud Renders
+- Jose Puche - Backend, Object Detection
+- Trevor Geiger - Backend, Semantic Segmentation

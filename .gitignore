@@ -3,12 +3,13 @@
 *.pcd
 *.raw
 package-lock.json
-__pycache__/*.pyc
+__pycache__
 *.pyc
-venv/
 .venv/
 data/
 processed_masks/
 runs/
 .idea/
 *.txt
+.vscode
+.idea

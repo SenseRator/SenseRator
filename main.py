@@ -46,21 +46,17 @@ def main():
                 video_player.stop_video()        
             
         elif event == '-SLIDER-': 
-            print("Slider is being moved.")
             # When the slider is moved, update images to that frame
             new_frame_index = int(values['-SLIDER-'])
             video_player.update_images_to_slider(new_frame_index)
 
         if event == '-PLAY-':
-            print("Play button pressed.")
             video_player.play_video()
         
         elif event == '-PAUSE-':
-            print("Pause button pressed.")
             video_player.pause_video()
         
         elif event == '-RESTART-':
-            print("Video restarted.")
             video_player.restart_video()
 
         if event == 'Open Folder':

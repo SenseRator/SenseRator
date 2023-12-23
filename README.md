@@ -101,6 +101,8 @@ The completed data directory should appear as follows:
 │   ├── preprocess_images.py        # Loads, transforms, and saves images with their corresponding labels for training
 │   ├── segment.py                  # Segments one image specified by the arguments
 │   └── train.py                    # Trains a modified DeepLabV3 semantic segmentation model
+├── tests/                          # Unit tests, system tests 
+│   ├──                             
 ├── config.py                       # Config file for the object detection model
 ├── lidar_pcap_converter.py         # Utility functions for converting LiDAR .pcap files to .pcd or .ply files
 ├── event_handlers.py               # GUI-related event handlers (help, about)

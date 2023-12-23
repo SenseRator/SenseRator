@@ -3,8 +3,7 @@ from PIL import Image
 from io import BytesIO
 import PySimpleGUI as sg
 from multiprocessing import Process
-
-import convertImage
+import image_processing
 
 raw_path = 'Data\\raw_images'
 abs_path = ''
@@ -36,6 +35,12 @@ mediaLayout = [[sg.Text('Media File Player')],
 
 # Options window
 def options(vis):
+	"""
+    Opens a window for additional settings and options related to Open3D visualization.
+
+    Parameters:
+        vis (Open3D.visualization.O3DVisualizer): The Open3D visualizer object.
+    """
 	# Initialize window
 	window = sg.Window("More Options", optionsLayout, finalize=True)
 
@@ -84,6 +89,12 @@ def options(vis):
 
 # Video player window
 def mediaPlayer(vis = None):
+	"""
+    Launches a media player window to play and control media files, specifically raw image files.
+
+    Parameters:
+        vis (Open3D.visualization.O3DVisualizer, optional): The Open3D visualizer object, if used with Open3D visualization.
+    """
 	# Initialize window and setup file path
 	window = sg.Window("Video Player", mediaLayout, finalize=True, element_justification='center');
 	# print('CURRENT PATH ', os.getcwd())
@@ -129,7 +140,7 @@ def mediaPlayer(vis = None):
 
 				# Make sure file is correct format and process into usable image/graph
 				if file.endswith(".raw"):
-					image = convertImage.grayscale(f'{abs_path}\{file}', resize)
+					image = image_processing.read_and_resize_grayscale_image(f'{abs_path}\{file}', resize)
 					# print(file)
 					window['-VIDEO-'].erase()
 					window['-VIDEO-'].draw_image(data=array_to_data(image), location=(0,resize[1]))
@@ -169,6 +180,15 @@ def mediaPlayer(vis = None):
 
 # Convert numpy array to image data
 def array_to_data(array):
+	"""
+    Converts a numpy array to image data suitable for displaying in a GUI.
+
+    Parameters:
+        array (numpy.ndarray): The image data as a numpy array.
+
+    Returns:
+        bytes: The image data in a format suitable for display in the GUI.
+    """
 	im = Image.fromarray(array)
 	with BytesIO() as output:
 		im.save(output, format='PNG')

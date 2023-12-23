@@ -6,8 +6,8 @@ import open3d as o3d
 import PySimpleGUI as sg
 import open3d.visualization.gui as gui
 import open3d.visualization.rendering as rendering
-import windows
-import convertCloud
+import gui_media_visualization
+import lidar_pcap_converter
 
 vis = None
 app = o3d.visualization.gui.Application.instance
@@ -29,6 +29,9 @@ selectLayout = [[sg.Text('Choose your folder')],
 # Pause animation setup
 paused = False
 def toggle():
+	"""
+    Toggles the paused state of the application, controlling the updating of point clouds.
+    """
 	global paused
 	paused = not paused
 
@@ -37,6 +40,16 @@ def toggle():
 # ----- Helpers -----
 # Unpack point clouds to seperate files
 def unpackClouds(files, file_type='pcd'):
+	"""
+    Processes and unpacks point cloud data from pcap files into either pcd or ply files.
+
+    Parameters:
+        files (list): List of file names to be processed.
+        file_type (str): Desired output file type ('pcd' or 'ply').
+
+    Returns:
+        list: A list of processed file names.
+    """
 	global selected_path
 	file = None
 	json = None
@@ -49,16 +62,22 @@ def unpackClouds(files, file_type='pcd'):
 	if (file == None or json == None):
 		print('.pcap file and .json metadata required')
 	elif (file_type == 'pcd'):
-		convertCloud.pcap_to_pcd(f'{selected_path}\{file}', f'{selected_path}\{json}', pcd_dir=f'{selected_path}\PCD_Files')
+		lidar_pcap_converter.pcap_to_pcd(f'{selected_path}\{file}', f'{selected_path}\{json}', pcd_dir=f'{selected_path}\PCD_Files')
 		selected_path += '\PCD_Files'
 	elif (file_type == 'ply'):
-		convertCloud.pcap_to_ply(f'{selected_path}\{file}', f'{selected_path}\{json}', ply_dir=f'{selected_path}\PLY_Files')
+		lidar_pcap_converter.pcap_to_ply(f'{selected_path}\{file}', f'{selected_path}\{json}', ply_dir=f'{selected_path}\PLY_Files')
 		selected_path += '\PLY_Files'
 
 	return os.listdir(selected_path)
 
 # Change file directory 
 def setup_streaming():
+	"""
+    Sets up the file streaming by opening a GUI window for folder selection and determining file processing.
+
+    Returns:
+        tuple: A tuple containing a list of file names and the selected directory path.
+    """
 	window = sg.Window('Choose your folder', selectLayout)
 	global selected_path
 	global files
@@ -94,12 +113,27 @@ def setup_streaming():
 
 # Read next point cloud 
 def update_point_clouds(file_path):
+	"""
+    Reads a point cloud file and applies rotation transformation to it.
+
+    Parameters:
+        file_path (str): Path of the point cloud file to be read.
+
+    Returns:
+        open3d.geometry.PointCloud: The transformed point cloud object.
+    """
 	point_cloud = o3d.io.read_point_cloud(file_path)
 	point_cloud.rotate(rotation, center=(0,0,0))
 	return point_cloud
 
 # Update window
 def run_one_tick():
+	"""
+    Runs a single update tick for the application used for updating the GUI.
+
+    Returns:
+        bool: A boolean indicating if the tick was successful.
+    """
 	app = o3d.visualization.gui.Application.instance
 	tick_return = app.run_one_tick()
 	if tick_return:
@@ -111,6 +145,13 @@ def run_one_tick():
 # ----- The Meat -----
 # Start window and read in files
 def initWindow(folder=None, setting=None):
+	"""
+    Initializes the main window for point cloud visualization.
+
+    Parameters:
+        folder (str, optional): Path to the folder containing point cloud files.
+        setting (str, optional): Additional setting for file processing.
+    """
 	global vis
 	global files
 	global rotation
@@ -118,7 +159,7 @@ def initWindow(folder=None, setting=None):
 
 	# Create point cloud window
 	vis = o3d.visualization.O3DVisualizer("Lidar Data", 1000, 700)
-	vis.add_action("Custom Options", windows.options)
+	vis.add_action("Custom Options", gui_media_visualization.options)
 	# vis.add_action("Video Player", windows.mediaPlayer)
 	# vis.add_action("Video Player 2.0", main.main)
 
@@ -148,6 +189,9 @@ def initWindow(folder=None, setting=None):
 
 # Read files all at once (only run if file ran independantly)
 def readFiles():
+	"""
+    Reads and visualizes each point cloud file sequentially from the list of files.
+    """
 	# Read each file and update frames
 	try:
 		for file in files:
@@ -170,6 +214,12 @@ def readFiles():
 
 # Read one file (to be run in tandem with images/video)
 def readFile(i):
+	"""
+    Reads and visualizes a single point cloud file based on the index.
+
+    Parameters:
+        i (int): Index of the file in the files list to be visualized.
+    """
 	if (i >= len(files)):
 		return
 
@@ -191,6 +241,9 @@ def readFile(i):
 
 # Empty Open3D scene/window
 def resetScene():
+	"""
+    Resets the Open3D visualization scene, clearing all loaded point cloud data.
+    """
 	selected_path = ''
 	files = []
 	vis.remove_geometry(point_cloud_name)

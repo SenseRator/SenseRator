@@ -6,7 +6,7 @@ from ultralytics import YOLO  # Ultralytics is a package for YOLO model
 
 # Code imports
 import semseg  # Semantic segmentation module
-import lidar_utils  # Utilities for LiDAR processing
+from lidar_visualization_gui import resetScene # Utilities for LiDAR processing
 from event_handlers import handle_about_event, handle_help_event  # Event handling functions
 from image_processing import process_images_and_pcap  # Image processing functions
 from video_player import VideoPlayer  # Video player class
@@ -35,7 +35,7 @@ def main():
 
     # Load models
     semantic_segmentation_model = init_semseg_model('./data/class_dict.csv')  # Semantic segmentation model
-    object_detection_model = YOLO('final.pt')  # YOLO model for object detection
+    object_detection_model = YOLO('UltralyticsModel_snapshot.pt')  # YOLO model for object detection
 
     # Main event loop
     while True:
@@ -87,7 +87,7 @@ def main():
         elif event in ('Cancel', 'Back'):
             # Handle 'Cancel' and 'Back' events
             frames = []
-            lidar_utils.resetScene()
+            resetScene()
             window.close()
             window, _ = set_layout('startup')
 

@@ -1,3 +1,24 @@
+"""
+This script evaluates the deep learning model, specifically a DeepLabv3 model for semantic segmentation tasks. The evaluation process includes computing metrics like multi-label accuracy, confusion matrix, and mean average precision. 
+
+The script performs the following key tasks:
+
+1. Loading Annotations: Utilizes the `load_annotations` function from the `dataset` module to load image and label annotations for validation data.
+
+2. Dataset Preparation: Creates an instance of `LocalCarImageDataset` with the loaded annotations, setting up the validation dataset without any transformations.
+
+3. DataLoader Setup: Prepares a DataLoader for the validation dataset with specified batch size and collation function.
+
+4. Model Loading and Evaluation: Loads a pre-trained DeepLabv3 model and evaluates it on the validation dataset. It calculates performance metrics such as multi-label accuracy, a normalized confusion matrix, and mean average precision. 
+
+5. Results Visualization: Visualizes the input images, model predictions, and ground truths, and saves these visualizations along with the confusion matrix heatmap to the specified directory.
+
+6. Logging Metrics: Logs the calculated metrics and saves the confusion matrix as a PNG file.
+
+Usage:
+    Run the script directly with Python. Ensure that the required data files, model weights, and dependencies are available in the respective directories.
+"""
+
 import pandas as pd
 import seaborn as sns
 import torch

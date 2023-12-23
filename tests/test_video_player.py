@@ -28,7 +28,7 @@ class TestVideoPlayer(unittest.TestCase):
         self.player = VideoPlayer(self.frames, self.window, self.folder, self.resize, self.object_results, self.seg_paths)
 
 
-    @patch('convertImage.read_and_resize_image')
+    @patch('image_processing.read_and_resize_image')
     def test_play_video(self, mock_read_and_resize_image):
         # Mock read_and_resize_image to return a dummy image
         dummy_image = np.zeros((100, 100, 3), dtype=np.uint8)

@@ -7,11 +7,24 @@ import PySimpleGUI as sg
 import sys
 
 # Code Imports
-from lidar_utils import readFile
-from convertImage import read_and_resize_image
+from lidar_visualization_gui import readFile
+from image_processing import read_and_resize_image
 from timestamp_utils import extract_timestamp
 
 class VideoPlayer:
+    """
+    A class to handle the playback and control of video frames, including displaying additional image processing results.
+
+    Attributes:
+        frames (list): List of frame file names.
+        window (PySimpleGUI.Window): The GUI window for the video player.
+        folder (str): Directory path containing the video frames.
+        resize (tuple): Dimensions to resize the video frames.
+        object_results (list): List of object detection results.
+        seg_paths (list): List of segmentation image paths.
+        cur_frame (int): Current frame index.
+        paused (bool): Pause state of the video.
+    """
     def __init__(self, frames, window, folder, resize, object_results, seg_paths):
         self.frames = frames
         self.window = window

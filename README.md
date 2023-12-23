@@ -6,6 +6,8 @@
 - [Quick start](#quick-start)
 	- [With Conda](#with-conda)
 - [Usage](#usage)
+    - [Training the Semantic Segmentation Model](#training-the-semantic-segmentation-model)
+    - [Visualizing Predictions](#visualizing-predictions)
 - [Data](#data)
 - [Directory Structure](#directory-structure)
 - [Members](#members)
@@ -53,6 +55,13 @@ scripts/download_data.sh
 ## Usage
 **WIP**
 
+**Note: Use Python 3.X**
+### Training the Semantic Segmentation Model
+WIP
+
+### Visualizing Predictions
+WIP
+
 ## Data
 The Camvid dataset used for training the semantic segmentation module of the SenseRator project is available on the [Kaggle website](https://www.kaggle.com/datasets/carlolepelaars/camvid). 
 
@@ -76,38 +85,34 @@ The completed data directory should appear as follows:
 ```
 
 ## Directory Structure
-**WIP: descriptions needed for each element.**
 ```
 .
-├── data
-├── datasets
-├── processed_masks
-├── scripts
-├── semseg/
-│   ├── batch_segment.py
-│   ├── dataset.py
-│   ├── evaluate.py
-│   ├── model.py
-│   ├── preprocess_images.py
-│   ├── segment.py
-│   └── train.py
-├── .gitignore
-├── config.py
-├── convertCloud.py
-├── convertImage.py
-├── create_diagrams.py
-├── environment.yml
-├── event_handlers.py
-├── final.pt
-├── gui_utils.py
-├── image_processing.py
-├── lidar_utils.py
-├── main.py
-├── model_weights.pth
-├── object_detection.py
-├── timestamp_utils.py
-├── video_player.py
-└── windows.py
+├── data                            # Contains camvid dataset
+├── processed_masks                 # Output folder for semseg masks
+├── scripts                         # Utility scripts
+│   ├── download_data.sh            # Shell script for downloading CamVid dataset
+│   ├── inspect_pt_file.py          # Script for inspecting the contents of a .pt file
+│   ├── create_diagrams.py          # Script for creating various project-related diagrams using graphviz
+├── semseg/                         # Code needed for Semantic Segmentation
+│   ├── batch_segment.py            # Segments a directory full of images
+│   ├── dataset.py                  # Dataset loader for CamVid dataset
+│   ├── evaluate.py                 # Evaluate the DeepLabV3 model
+│   ├── model.py                    # Setup and utility functions for the semantic segmentation model
+│   ├── preprocess_images.py        # Loads, transforms, and saves images with their corresponding labels for training
+│   ├── segment.py                  # Segments one image specified by the arguments
+│   └── train.py                    # Trains a modified DeepLabV3 semantic segmentation model
+├── config.py                       # Config file for the object detection model
+├── lidar_pcap_converter.py         # Utility functions for converting LiDAR .pcap files to .pcd or .ply files
+├── event_handlers.py               # GUI-related event handlers (help, about)
+├── UltralyticsModel_snapshot.pt    # Custom YOLO dictionary containing: epoch, best_fitness, model, etc. 
+├── gui_utils.py                    # GUI-related utilities (folder select, open windows)
+├── image_processing.py             # Various image-processing utilities for images and pcap files
+├── lidar_visualization_gui.py      # GUI and utilities for visualizing LIDAR
+├── main.py                         # Runs the GUI application and handles events for entire program
+├── object_detection.py             # Runs object detection using YOLO
+├── timestamp_utils.py              # Extracts timestamp for video playback
+├── video_player.py                 # Implements a class for video player functionality 
+└── gui_media_visualization.py      # Provides GUI for media playback 
 ```
 
 ## Members:

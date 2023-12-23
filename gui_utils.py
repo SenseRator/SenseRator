@@ -5,7 +5,7 @@ import sys
 import numpy as np
 import os
 # code imports
-import lidar_utils
+import lidar_visualization_gui
 from timestamp_utils import extract_timestamp
 
 def ImageButton(title, key):
@@ -101,7 +101,6 @@ def set_layout(state, info = []):
 
     return window, layout
 
-
 # Let user input folders for images and point clouds
 def folder_select(window):
     frames = []
@@ -185,7 +184,6 @@ def folder_select(window):
     # window.close()
     # window, _ = set_layout('folder selected', [frames.size])
     # return folderCam, frames, window
-
 
 def open_about_window():
     about_window, _ = set_layout('about')

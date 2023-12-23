@@ -8,27 +8,31 @@ This module has a rudimentary command line interface. For usage, run::
 
 		$ python -m ouster.sdk.examples.pcap -h
 """
-# RuntimeError: ftell error: errno 22 (line 64)
 
 import os
 import json
 from ouster import client, pcap
 
-# source: 	.pcap file
-# metadata:	SensorInfo for .pcap
-# num: 			Scan number
-# pcd_dir: 	Directory to place .pcd
-# pcd_base:	Base name for .pcd
-# pcd_ext:	File extenstion
-
-# Unpack .pcap to .pcd's
 def pcap_to_pcd(source: client.PacketSource,
 								metadata: client.SensorInfo,
 								num: int = 0,
 								pcd_dir: str = ".",
 								pcd_base: str = "pcd_out",
 								pcd_ext: str = "pcd") -> None:
-		"Write scans from a pcap to pcd files (one per lidar scan)."
+		"""
+		Converts LiDAR data from a pcap file to Point Cloud Data (.pcd) files, one file per LiDAR scan.
+
+		Parameters:
+			source (client.PacketSource): The source pcap file containing LiDAR data.
+			metadata (client.SensorInfo): Sensor information for the pcap file.
+			num (int, optional): Number of scans to process. Default is 0, which processes all scans.
+			pcd_dir (str, optional): Directory to place output .pcd files. Defaults to the current directory.
+			pcd_base (str, optional): Base name for output .pcd files. Defaults to 'pcd_out'.
+			pcd_ext (str, optional): File extension for output files. Defaults to 'pcd'.
+
+		Returns:
+			None: This function writes output directly to files and does not return any value.
+		"""
 
 		metadata = client.SensorInfo(json.dumps(json.load(open(metadata, 'r'))))
 		source = pcap.Pcap(source, metadata)
@@ -73,14 +77,28 @@ def pcap_to_pcd(source: client.PacketSource,
 
 				o3d.io.write_point_cloud(pcd_path, pcd)  # type: ignore
 
-# Unpack .pcap to .ply's
 def pcap_to_ply(source: client.PacketSource,
 								metadata: client.SensorInfo,
 								num: int = 0,
 								ply_dir: str = ".",
 								ply_base: str = "ply_out",
 								ply_ext: str = "ply") -> None:
-		"Write scans from a pcap to ply files (one per lidar scan)."
+		"""
+		Converts LiDAR data from a pcap file to Polygon File Format (.ply) files, one file per LiDAR scan.
+
+		This function internally calls pcap_to_pcd to perform the conversion, changing only the output file format to .ply.
+
+		Parameters:
+			source (client.PacketSource): The source pcap file containing LiDAR data.
+			metadata (client.SensorInfo): Sensor information for the pcap file.
+			num (int, optional): Number of scans to process. Default is 0, which processes all scans.
+			ply_dir (str, optional): Directory to place output .ply files. Defaults to the current directory.
+			ply_base (str, optional): Base name for output .ply files. Defaults to 'ply_out'.
+			ply_ext (str, optional): File extension for output files. Defaults to 'ply'.
+
+		Returns:
+			None: This function writes output directly to files and does not return any value.
+    	"""
 
 		# Don't need to print warning about dual returns since this leverages pcap_to_pcd
 

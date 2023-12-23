@@ -1,6 +1,13 @@
 # Segment.py diagram: 
 import matplotlib.pyplot as plt
 from graphviz import Digraph
+import sys
+import os
+from pathlib import Path
+
+# Add the parent directory to the sys.path
+parent_dir = Path(__file__).parent.parent
+sys.path.append(str(parent_dir))
 
 # def create_segment_py_flowchart():
 #     # Create a directed graph

@@ -6,10 +6,10 @@ from torchvision.io import read_image
 from torchvision.transforms import Normalize, Resize, Compose
 import matplotlib.pyplot as plt
 from .model import create_deeplabv3
-import os
 import pandas as pd
 import cv2
 from PIL import Image
+from utils.file_utils import join_paths, make_directory, get_directory_name
 
 def invert_y(mask, index_to_rgb):
     h, w = mask.shape
@@ -71,7 +71,7 @@ def segment(filename, folder):
     # Directory to load images from and save masks to
     input_dir = folder
     output_dir = "./processed_masks"
-    os.makedirs(output_dir, exist_ok=True)
+    make_directory(output_dir, exist_ok=True)
 
     # Define our labels
     labels_df = pd.read_csv("./data/class_dict.csv")
@@ -81,14 +81,14 @@ def segment(filename, folder):
     # Load the trained model
     model = create_deeplabv3(output_channels=len(labels_df))
     # state_dict = torch.load("./deeplabv3_model.pt", map_location=torch.device('cpu'))
-    model_path = os.path.join(os.path.dirname(__file__), 'deeplabv3_model.pt')
+    model_path = join_paths(get_directory_name(__file__), 'deeplabv3_model.pt')
     state_dict = torch.load(model_path, map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
     model.eval()
 
     # Read in a frame (filename) from the input directory
     if filename.endswith('.jpg'):  # Check if the file is a JPEG image
-        file_path = os.path.join(input_dir, filename)
+        file_path = join_paths(input_dir, filename)
 
         # Load and preprocess the input image
         input_image = read_image(file_path).float() / 255.0
@@ -118,7 +118,7 @@ def segment(filename, folder):
         combined_mask = cv2.addWeighted(predicted_mask_rgb.astype(np.uint8), 0.5, labeled_mask, 0.5, 0)
 
         # Save the combined mask
-        save_path = os.path.join(output_dir, f'SemSeg_{filename}')
+        save_path = join_paths(output_dir, f'SemSeg_{filename}')
         Image.fromarray(combined_mask).save(save_path)
 
     print(f"Mask {save_path} processed and saved.")

@@ -15,12 +15,12 @@ This Python script is dedicated to the setup and utility functions for a Deep Le
 
 The script is focused on the aspects of model initialization, customization for specific tasks, and utilities for processing and visualizing the model's outputs.
 """
-import os
 import pandas as pd
 import torch
 import torchvision
 import numpy as np
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
+from utils.file_utils import join_paths, get_directory_name
 
 # Function to initalize the semseg model and put into eval mode. 
 def init_semseg_model(filepath):
@@ -43,7 +43,7 @@ def init_semseg_model(filepath):
     # Load the trained SemSeg model
     seg_model = create_deeplabv3(output_channels=len(labels_df))
     # Set Model path
-    seg_model_path = os.path.join(os.path.dirname(__file__), 'deeplabv3_model.pt')
+    seg_model_path = join_paths(get_directory_name(__file__), 'deeplabv3_model.pt')
     # Load State_dict
     seg_state_dict = torch.load(seg_model_path, map_location='cuda' if torch.cuda.is_available() else 'cpu')
     seg_model.load_state_dict(seg_state_dict)

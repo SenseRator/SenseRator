@@ -5,7 +5,6 @@ import keyboard
 from ultralytics import YOLO  # Ultralytics is a package for YOLO model
 
 # Code imports
-import semseg  # Semantic segmentation module
 from lidar_visualization_gui import resetScene # Utilities for LiDAR processing
 from event_handlers import handle_about_event, handle_help_event  # Event handling functions
 from image_processing import process_images_and_pcap  # Image processing functions

@@ -1,7 +1,7 @@
-import os
 import torch
 from torchvision.io import read_image
 from dataset import load_annotations
+from utils.file_utils import make_directory, join_paths
 
 class ProcessImageDataSet(Dataset):
     def __init__(self, annotations,y_annotations, img_dir,y_label_dir, dataset_type, transform=None, target_transform=None):
@@ -15,18 +15,18 @@ class ProcessImageDataSet(Dataset):
         
         # Ensure the directory for saving transformed train images exists
         transformed_img_dir = "./data/transformed_images/train/"
-        os.makedirs(transformed_img_dir, exist_ok=True)  # Use exist_ok to avoid error if the directory exists
+        make_directory(transformed_img_dir, exist_ok=True)  # Use exist_ok to avoid error if the directory exists
 
         # Ensure the directory for saving transformed val images exists
         transformed_img_dir = "./data/transformed_images/val/"
-        os.makedirs(transformed_img_dir, exist_ok=True)  # Use exist_ok to avoid error if the directory exists
+        make_directory(transformed_img_dir, exist_ok=True)  # Use exist_ok to avoid error if the directory exists
 
     def __len__(self):
         return len(self.annotations)
 
     def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, self.annotations.iloc[idx])
-        y_path = os.path.join(self.y_label_dir, self.y_annotations.iloc[idx])
+        img_path = join_paths(self.img_dir, self.annotations.iloc[idx])
+        y_path = join_paths(self.y_label_dir, self.y_annotations.iloc[idx])
         image_x =  read_image(img_path) / 255
         image_y =  read_image(y_path)
         

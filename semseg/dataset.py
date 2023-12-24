@@ -4,6 +4,7 @@ import torch
 from torchvision.io import read_image
 from torchvision.transforms import Normalize
 from torch.utils.data import Dataset
+from utils.file_utils import join_paths
 
 def load_annotations(x_dir, x_to_y_pattern):
     """
@@ -104,10 +105,10 @@ class LocalCarImageDataset(Dataset):
 
     # Working but slow
     def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, self.annotations.iloc[idx])
+        img_path = join_paths(self.img_dir, self.annotations.iloc[idx])
         image_x = read_image(img_path).float() / 255.0
 
-        y_path = os.path.join(self.y_label_dir, self.y_annotations.iloc[idx])
+        y_path = join_paths(self.y_label_dir, self.y_annotations.iloc[idx])
         image_y = torch.load(y_path)
 
         image_x,image_y = image_x.permute(1,2,0),image_y.permute(1,2,0)

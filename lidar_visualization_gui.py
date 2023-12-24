@@ -1,4 +1,3 @@
-import os
 import time
 import keyboard
 import numpy as np
@@ -8,6 +7,8 @@ import open3d.visualization.gui as gui
 import open3d.visualization.rendering as rendering
 import gui_media_visualization
 import lidar_pcap_converter
+
+from utils.file_utils import list_directory_contents
 
 vis = None
 app = o3d.visualization.gui.Application.instance
@@ -68,7 +69,7 @@ def unpackClouds(files, file_type='pcd'):
 		lidar_pcap_converter.pcap_to_ply(f'{selected_path}\{file}', f'{selected_path}\{json}', ply_dir=f'{selected_path}\PLY_Files')
 		selected_path += '\PLY_Files'
 
-	return os.listdir(selected_path)
+	return list_directory_contents(selected_path)
 
 # Change file directory 
 def setup_streaming():
@@ -88,7 +89,7 @@ def setup_streaming():
 			selected_path = values['-FILE-']
 
 			if (event == '-FILE-'):
-				n = len(os.listdir(selected_path))
+				n = len(list_directory_contents(selected_path))
 				time = [int(n/600), int((n/10)%60)]
 				window['-UPDATE-'].update('The selected folder has ' + str(n) + ' frames, totalling ' + '{}:{:02d}'.format(time[0],time[1]) + ' of video.')
 			
@@ -96,9 +97,9 @@ def setup_streaming():
 				window['-UPDATE-'].update('Loading...')
 				window.Refresh()
 				if (values[0]):
-					files = os.listdir(selected_path)
+					files = list_directory_contents(selected_path)
 				else:
-					files = unpackClouds(os.listdir(selected_path))
+					files = unpackClouds(list_directory_contents(selected_path))
 				break
 			
 			if event in ('Cancel', sg.WIN_CLOSED):
@@ -181,9 +182,9 @@ def initWindow(folder=None, setting=None):
 	if folder:
 		selected_path = folder
 		if setting:
-			files = os.listdir(folder)
+			files = list_directory_contents(folder)
 		else:
-			files = unpackClouds(os.listdir(folder))
+			files = unpackClouds(list_directory_contents(folder))
 	else:
 		files = setup_streaming()
 

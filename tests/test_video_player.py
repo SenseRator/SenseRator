@@ -1,6 +1,5 @@
 import unittest
 import sys
-import os
 import numpy as np
 from pathlib import Path
 from unittest.mock import Mock, patch

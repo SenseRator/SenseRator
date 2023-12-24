@@ -1,12 +1,9 @@
 # library imports
 import PySimpleGUI as sg
-import keyboard
-import sys
 import numpy as np
-import os
 # code imports
-import lidar_visualization_gui
 from timestamp_utils import extract_timestamp
+from utils.file_utils import check_path_exists, list_directory_contents
 
 def ImageButton(title, key):
     return sg.Button(title, border_width=0, key=key)
@@ -115,12 +112,12 @@ def folder_select(window):
             folderLid = values['-FOLDER-']+'/pcd'
 
             if (event == '-FOLDER-'):
-                if not os.path.exists(folderCam):
+                if not check_path_exists(folderCam):
                     print(f"Camera folder does not exist: {folderCam}")
-                elif not os.path.exists(folderLid):
+                elif not check_path_exists(folderLid):
                     window['-UPDATE-'].update(f"Lidar folder does not exist: {folderLid}")
                 else: 
-                    dir = os.listdir(folderCam)
+                    dir = list_directory_contents(folderCam)
                     n = len(dir)
                     time = extract_timestamp(dir[n-3]) - extract_timestamp(dir[0])
                     window['-UPDATE-'].update('The selected folder has ' + str(n) + ' frames, totalling ' + '{}:{:.0f}'.format(int(time/60), time%60) + ' of video.')
@@ -129,7 +126,7 @@ def folder_select(window):
                 window['-UPDATE-'].update('Loading...')
                 window.Refresh()
 
-                files = np.asarray(os.listdir(folderCam))
+                files = np.asarray(list_directory_contents(folderCam))
                 frames = files[0:len(files)-3]
                 break
 
@@ -150,40 +147,6 @@ def folder_select(window):
     window.close()
     window, _ = set_layout('folder selected', [len(frames)])
     return folderCam, frames, window
-
-            # if (event == 'Ok'):
-            #     window['-UPDATE-'].update('Loading...')
-            #     window.Refresh()
-
-            #     if folderLid in (None, ''):
-            #         window['-UPDATE-'].update('No point cloud folder selected.')
-            #     else:
-            #         print("VALUES")
-            #         lidar_utils.initWindow(folderLid)
-
-            #     files = np.asarray(os.listdir(folderCam))
-            #     size = files.size
-            #     frames = files[0:size-3]
-            #     if folderCam in (None, ''):
-            #         window['-UPDATE-'].update('No image folder selected.')
-            #     else:
-            #         break
-            
-            # if event in ('Cancel', sg.WIN_CLOSED):
-            #     window.close()
-            #     window, _ = set_layout('folder selected', [frames.size])
-            #     raise Exception ('Window Closed')
-
-    #     except Exception as e:
-    #         if str(e) == 'Window Closed':
-    #             programEnd()
-    #         else:
-    #             print("Exception type:", type(e).__name__)
-    #             print("Exception message:", e)
-    #         window['-UPDATE-'].update('Something went wrong with Folder Selection.')
-    # window.close()
-    # window, _ = set_layout('folder selected', [frames.size])
-    # return folderCam, frames, window
 
 def open_about_window():
     about_window, _ = set_layout('about')

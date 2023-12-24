@@ -9,9 +9,9 @@ This module has a rudimentary command line interface. For usage, run::
 		$ python -m ouster.sdk.examples.pcap -h
 """
 
-import os
 import json
 from ouster import client, pcap
+from utils.file_utils import check_path_exists, join_paths, make_directory
 
 def pcap_to_pcd(source: client.PacketSource,
 								metadata: client.SensorInfo,
@@ -53,8 +53,8 @@ def pcap_to_pcd(source: client.PacketSource,
 						"platforms. Try running `pip3 install open3d` first.")
 				exit(1)
 
-		if not os.path.exists(pcd_dir):
-				os.makedirs(pcd_dir)
+		if not check_path_exists(pcd_dir):
+				make_directory(pcd_dir)
 
 		# precompute xyzlut to save computation in a loop
 		xyzlut = client.XYZLut(metadata)
@@ -72,7 +72,7 @@ def pcap_to_pcd(source: client.PacketSource,
 
 				pcd.points = o3d.utility.Vector3dVector(xyz.reshape(-1, 3))  # type: ignore
 
-				pcd_path = os.path.join(pcd_dir, f'{pcd_base}_{idx:06d}.{pcd_ext}')
+				pcd_path = join_paths(pcd_dir, f'{pcd_base}_{idx:06d}.{pcd_ext}')
 				print(f'write frame #{idx} to file: {pcd_path}')
 
 				o3d.io.write_point_cloud(pcd_path, pcd)  # type: ignore

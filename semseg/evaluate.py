@@ -24,7 +24,6 @@ import seaborn as sns
 import torch
 import logging
 import random
-import os
 from torchmetrics.classification import MultilabelAccuracy,MulticlassConfusionMatrix
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from dataset import LocalCarImageDataset, collate
@@ -32,6 +31,7 @@ from .model import get_binary, invert_y, create_deeplabv3
 from dataset import load_annotations
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
+from utils.file_utils import join_paths, make_directory
 
 
 def evaluate_model(model, device, valid_loader, labels):
@@ -53,7 +53,7 @@ def evaluate_model(model, device, valid_loader, labels):
 
     # Create folder
     folder_name = 'evaluation_results'
-    os.makedirs(folder_name, exist_ok=True)
+    make_directory(folder_name, exist_ok=True)
 
     # Evaluation loop
     with torch.no_grad():
@@ -99,7 +99,7 @@ def evaluate_model(model, device, valid_loader, labels):
                 axs[2].imshow(invert_y(true_y.to("cpu").detach().permute(1, 2, 0), labels))
                 axs[2].set_title("Ground Truth")
                 plt.tight_layout()
-                plt.savefig(os.path.join(folder_name, f'mask_{i}.png'))
+                plt.savefig(join_paths(folder_name, f'mask_{i}.png'))
                 plt.close(fig)
     
 

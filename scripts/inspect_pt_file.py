@@ -1,6 +1,5 @@
 import torch
 import sys
-import os
 from pathlib import Path
 
 # Add the parent directory to the sys.path

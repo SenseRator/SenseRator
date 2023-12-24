@@ -1,9 +1,10 @@
-import os
+import PySimpleGUI as sg
+import image_processing
+
+from multiprocessing import Process
 from PIL import Image
 from io import BytesIO
-import PySimpleGUI as sg
-from multiprocessing import Process
-import image_processing
+from utils.file_utils import change_directory, get_current_directory, list_directory_contents
 
 raw_path = 'Data\\raw_images'
 abs_path = ''
@@ -97,18 +98,17 @@ def mediaPlayer(vis = None):
     """
 	# Initialize window and setup file path
 	window = sg.Window("Video Player", mediaLayout, finalize=True, element_justification='center');
-	# print('CURRENT PATH ', os.getcwd())
-	if ('pcd_files' in os.getcwd() or 'ply_files' in os.getcwd()):
-		temp = os.getcwd()[-9:]
-		os.chdir('..\\raw_images')
-		frames = os.listdir()
-		abs_path = os.getcwd()
-		os.chdir(f'..\{temp}')
+	if ('pcd_files' in get_current_directory() or 'ply_files' in get_current_directory()):
+		temp = get_current_directory()[-9:]
+		change_directory('..\\raw_images')
+		frames = list_directory_contents()
+		abs_path = get_current_directory()
+		change_directory(f'..\{temp}')
 	else:
-		os.chdir(raw_path)
-		frames = os.listdir()
-		abs_path = os.getcwd()
-		os.chdir('..\..')
+		change_directory(raw_path)
+		frames = list_directory_contents()
+		abs_path = get_current_directory()
+		change_directory('..\..')
 
 	paused = True
 

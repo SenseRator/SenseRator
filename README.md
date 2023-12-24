@@ -72,6 +72,10 @@ scripts/download_data.sh
 ## Usage
 **WIP**
 
+### Download Capture data (.jpg and .pcd) from the SenseRator vehicle
+- Capture data from the SenseRator vehicle can be located at this [Google Drive Link](https://drive.google.com/file/d/1wnIPu1QEisPGQWcJxTs4667XRNohbg2G/view)
+- This will be the folder you select during the 'File Selection' process of the program. 
+
 **Note: Use Python 3.X**
 ### Training the Semantic Segmentation Model
 WIP

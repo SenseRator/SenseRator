@@ -1,7 +1,6 @@
 # test_gui.py
 import unittest
 import sys
-import os
 from pathlib import Path
 
 # Add the parent directory to the sys.path

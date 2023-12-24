@@ -2,7 +2,6 @@
 import cv2
 import time
 import gui_utils
-import os
 import PySimpleGUI as sg
 import sys
 
@@ -10,6 +9,7 @@ import sys
 from lidar_visualization_gui import readFile
 from image_processing import read_and_resize_image
 from timestamp_utils import extract_timestamp
+from utils.file_utils import join_paths
 
 class VideoPlayer:
     """
@@ -68,7 +68,7 @@ class VideoPlayer:
 
         frame_name = self.frames[self.cur_frame]
         # Load the original frame
-        original_frame = read_and_resize_image(os.path.join(self.folder, frame_name), self.resize)
+        original_frame = read_and_resize_image(join_paths(self.folder, frame_name), self.resize)
         # Display object detection results
         detection_image = self.object_results[self.cur_frame].plot()
         # Display segmentation results

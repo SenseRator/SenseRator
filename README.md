@@ -21,6 +21,23 @@ Additionally, the algorithm integrates the collected data to provide a detailed 
 
 In summary, the SenseRator is an advanced AI-powered sensor platform that can provide immediate, actionable intelligence in disaster-stricken areas.
 
+<table>
+  <tr>
+    <td>
+      <a href="https://youtu.be/T1tO6F1z9bk" title="SenseRator Application Demo">
+        <img src="assets/video_thumbnail_2.png" alt="SenseRator Application Demo Thumbnail">
+      </a>
+    </td>
+    <td>
+      <a href="https://youtu.be/rFd1qQmFYQ0" title="Video demo for Senior Design Fall 2023 Showcase">
+        <img src="assets/video_thumbnail.png" alt="Video demo for Senior Design Fall 2023 Showcase Thumbnail">
+      </a>
+    </td>
+  </tr>
+</table>
+
+
+
 ## Quick Start
 ### With Docker
 **WIP**

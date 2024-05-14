@@ -1,33 +1,17 @@
-"""
-This Python script is dedicated to the setup and utility functions for a Deep Learning semantic segmentation model, specifically using a modified DeepLabV3 with a MobileNet backbone. Key functionalities include:
-
-1. init_semseg_model: Initializes and loads a pre-trained semantic segmentation model for evaluation, adjusting its output channels to match the number of classes as defined in a provided CSV file.
-
-2. create_deeplabv3: Constructs a customized DeepLabV3 model with a specified number of output channels, suitable for semantic segmentation tasks. It includes modifications to the model's auxiliary and main classifiers and manages layer-wise freezing for training.
-
-3. get_optimizer: Provides an optimizer (Adam) for the model, useful in the training process.
-
-4. get_loss: Returns a CrossEntropyLoss function, commonly used for segmentation tasks.
-
-5. get_binary: Converts the model's multi-class segmentation output into a binary mask, useful for post-processing and evaluation.
-
-6. invert_y: Transforms the model's output from class indices to an RGB format for visual inspection, aiding in understanding and analyzing the model's predictions.
-
-The script is focused on the aspects of model initialization, customization for specific tasks, and utilities for processing and visualizing the model's outputs.
-"""
 import pandas as pd
 import torch
 import torchvision
 import numpy as np
+import os
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from utils.file_utils import join_paths, get_directory_name
 
-# Function to initalize the semseg model and put into eval mode. 
+# Function to initialize the semseg model and put into eval mode.
 def init_semseg_model(filepath):
     """
     Initializes and loads a semantic segmentation model from a given file path.
 
-    This function loads the model state from a specified file path and configures the model for evaluation. It also 
+    This function loads the model state from a specified file path and configures the model for evaluation. It also
     reads class labels from a CSV file and adjusts the model's output channels to match the number of classes.
 
     Parameters:
@@ -37,20 +21,22 @@ def init_semseg_model(filepath):
         torch.nn.Module: The loaded and initialized semantic segmentation model in evaluation mode.
     """
     # Define our labels
-    labels_df = pd.read_csv("./data/class_dict.csv")
+    data_path = filepath
+    labels_df = pd.read_csv(data_path)
     labels_df['index'] = range(len(labels_df))  # Add an index column
 
     # Load the trained SemSeg model
     seg_model = create_deeplabv3(output_channels=len(labels_df))
     # Set Model path
-    seg_model_path = join_paths(get_directory_name(__file__), 'deeplabv3_model.pt')
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    seg_model_path = os.path.join(root_dir, 'src', 'models', 'semseg', 'deeplabv3_model.pt')
     # Load State_dict
     seg_state_dict = torch.load(seg_model_path, map_location='cuda' if torch.cuda.is_available() else 'cpu')
     seg_model.load_state_dict(seg_state_dict)
     # Set device
     seg_model = seg_model.to('cuda' if torch.cuda.is_available() else 'cpu')
     seg_model.eval()
-    
+
     return seg_model
 
 # Function to modify the DeepLabV3 model to fit the number of classes in the dataset
@@ -65,15 +51,15 @@ def create_deeplabv3(output_channels=32):
         model (torch.nn.Module): The modified DeepLabV3 model ready for training or inference.
     """
     model = torch.hub.load('pytorch/vision:v0.10.0', 'deeplabv3_mobilenet_v3_large', weights=torchvision.models.segmentation.DeepLabV3_MobileNet_V3_Large_Weights.DEFAULT)
-    
+
     # Modify the auxiliary classifier
     model.aux_classifier[4] = torch.nn.Conv2d(output_channels, output_channels, kernel_size=(1, 1), stride=(1, 1))
     model.aux_classifier[0] = torch.nn.Conv2d(40, output_channels, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
     model.aux_classifier[1] = torch.nn.BatchNorm2d(output_channels, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-    
+
     # Modify the main classifier
     model.classifier[4] = torch.nn.Conv2d(256, output_channels, kernel_size=(1, 1), stride=(1, 1))
-    
+
     # Freeze layers
     for param in model.parameters():
         param.requires_grad = False
@@ -139,7 +125,7 @@ def get_binary(mask):
     binary_mask[max_indices, torch.arange(mask.size(1)).view(-1, 1), torch.arange(mask.size(2))] = 1
     return binary_mask.bool()
 
-#  Transform model predictions into a visually inspectable format.
+# Transform model predictions into a visually inspectable format.
 def invert_y(img, labels):
     """
     Transforms model predictions into a visually inspectable RGB format.

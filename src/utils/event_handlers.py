@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-from gui_utils import set_layout
+from .gui_utils import set_layout
 
 def handle_about_event():
     about_window, _ = set_layout('about')

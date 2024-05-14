@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
-from semseg import segment
-from object_detection import detect_objects
+from models.semseg import segment
+from models.object_detection import detect_objects
 
 def process_images_and_pcap(folder, frames, model, seg_model, progress_bar):
     """
@@ -23,7 +23,7 @@ def process_images_and_pcap(folder, frames, model, seg_model, progress_bar):
                - The first list contains the object detection results for each frame.
                - The second list contains the file paths of the segmented images.
     """
-    from lidar_visualization_gui import readFile
+    from models.lidar import readFile
     # Stores object detections information as YOLO results objects
     object_results = []
     seg_image_paths = []

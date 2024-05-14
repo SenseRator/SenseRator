@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import os
 from torchvision.io import read_image
 from torchvision.transforms import Normalize, Resize, Compose
 import matplotlib.pyplot as plt
@@ -72,7 +73,9 @@ def segment(filename, folder, model):
     make_directory(output_dir, exist_ok=True)
 
     # Define our labels
-    labels_df = pd.read_csv("./data/class_dict.csv")
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    data_path = os.path.join(root_dir, 'data', 'class_dict.csv')
+    labels_df = pd.read_csv(data_path)
     labels_df['index'] = range(len(labels_df))  # Add an index column
     index_to_rgb = {index: [r, g, b] for index, r, g, b in zip(labels_df.index, labels_df['r'], labels_df['g'], labels_df['b'])}
 

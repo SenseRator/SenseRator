@@ -2,8 +2,8 @@
 import PySimpleGUI as sg
 import numpy as np
 # code imports
-from timestamp_utils import extract_timestamp
-from utils.file_utils import check_path_exists, list_directory_contents
+from .timestamp_utils import extract_timestamp
+from .file_utils import check_path_exists, list_directory_contents
 
 def ImageButton(title, key):
     return sg.Button(title, border_width=0, key=key)

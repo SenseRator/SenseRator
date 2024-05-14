@@ -39,8 +39,7 @@ In summary, the SenseRator is an advanced AI-powered sensor platform that can pr
 
 
 ## Quick Start
-### With Docker
-**WIP**
+
 ### With Conda
 1. Open terminal or Anaconda Prompt
 2. Navigate to the directory containing the `environment.yml` file.
@@ -52,7 +51,7 @@ conda env create -f environment.yml
 
 This command will set up a new Conda environment identical which should work to run all parts of the project (**with the exception of Open3D / LIDAR.**)
 
-### Without Docker or Conda
+### Without Conda
 1. [Install CUDA](https://developer.nvidia.com/cuda-downloads)
     
 2. [Install PyTorch 1.13 or later](https://pytorch.org/get-started/locally/)
@@ -70,18 +69,14 @@ pip install -r requirements.txt
 scripts/download_data.sh
 ```
 ## Usage
-**WIP**
-
+1. Run the program using terminal `python main.py`
+2. Load the capture data from the SenseRator vehicle (which can be downloaded from the Google Drive link) when prompted to select the folder. 
+3. Confirm that the expected amount of frames have been loaded, and click 'Confirm' to begin visualization. 
 ### Download Capture data (.jpg and .pcd) from the SenseRator vehicle
 - Capture data from the SenseRator vehicle can be located at this [Google Drive Link](https://drive.google.com/file/d/1wnIPu1QEisPGQWcJxTs4667XRNohbg2G/view)
 - This will be the folder you select during the 'File Selection' process of the program. 
 
-**Note: Use Python 3.X**
-### Training the Semantic Segmentation Model
-WIP
-
-### Visualizing Predictions
-WIP
+**Note: Use Python 3.9.18+**
 
 ## Data
 The Camvid dataset used for training the semantic segmentation module of the SenseRator project is available on the [Kaggle website](https://www.kaggle.com/datasets/carlolepelaars/camvid). 
@@ -105,37 +100,41 @@ The completed data directory should appear as follows:
     └── class_dict.csv
 ```
 
-## Directory Structure
+## Project Directory Structure
 ```
 .
+├── assets                          # Contains assets for this README
 ├── data                            # Contains camvid dataset
 ├── processed_masks                 # Output folder for semseg masks
 ├── scripts                         # Utility scripts
 │   ├── download_data.sh            # Shell script for downloading CamVid dataset
 │   ├── inspect_pt_file.py          # Script for inspecting the contents of a .pt file
 │   ├── create_diagrams.py          # Script for creating various project-related diagrams using graphviz
-├── semseg/                         # Code needed for Semantic Segmentation
-│   ├── batch_segment.py            # Segments a directory full of images
-│   ├── dataset.py                  # Dataset loader for CamVid dataset
-│   ├── evaluate.py                 # Evaluate the DeepLabV3 model
-│   ├── model.py                    # Setup and utility functions for the semantic segmentation model
-│   ├── preprocess_images.py        # Loads, transforms, and saves images with their corresponding labels for training
-│   ├── segment.py                  # Segments one image specified by the arguments
-│   └── train.py                    # Trains a modified DeepLabV3 semantic segmentation model
-├── tests/                          # Unit tests, system tests 
-│   ├──                             
-├── config.py                       # Config file for the object detection model
-├── lidar_pcap_converter.py         # Utility functions for converting LiDAR .pcap files to .pcd or .ply files
-├── event_handlers.py               # GUI-related event handlers (help, about)
+├── src/
+│   ├── interfaces/     
+│   │   ├── gui.py                          # Handles video player functionality and GUI                                          
+│   ├── models/                                                     
+│   │   ├── semseg/                         # Semantic Segmentation training, evaluation, and visualization. 
+│   │   │   ├── batch_segment.py            # Segments a directory full of images
+│   │   │   ├── dataset.py                  # Dataset loader for CamVid dataset
+│   │   │   ├── evaluate.py                 # Evaluate the DeepLabV3 model
+│   │   │   ├── model.py                    # Setup and utility functions for the semantic segmentation model
+│   │   │   ├── preprocess_images.py        # Loads, transforms, and saves images with their corresponding labels for training
+│   │   │   ├── segment.py                  # Segments one image specified by the arguments
+│   │   │   └── train.py                    # Trains a modified DeepLabV3 semantic segmentation model
+│   │   ├── __init__.py
+│   │   ├── lidar.py                        # GUI and utilities for visualizing LIDAR
+│   │   ├── object_detection.py             # Runs object detection using YOLO
+│   ├── utils/                                                     
+│   │   ├── gui_utils.py                    # GUI-related utilities (folder select, open windows)
+│   │   ├── image_processing.py             # Various image-processing utilities for images and pcap files
+│   │   ├── file_utils.py                   # File-handling utilities
+│   │   ├── timestamp_utils.py              # Extracts timestamp for video playback
+│   │   ├── event_handlers.py               # GUI-related event handlers (help, about)
+│   ├── main.py                         # Runs the application and handles events for entire program
+│   ├── config.py                       # Config file for the object detection model
+├── tests/                          # Unit tests, system tests             
 ├── UltralyticsModel_snapshot.pt    # Custom YOLO dictionary containing: epoch, best_fitness, model, etc. 
-├── gui_utils.py                    # GUI-related utilities (folder select, open windows)
-├── image_processing.py             # Various image-processing utilities for images and pcap files
-├── lidar_visualization_gui.py      # GUI and utilities for visualizing LIDAR
-├── main.py                         # Runs the GUI application and handles events for entire program
-├── object_detection.py             # Runs object detection using YOLO
-├── timestamp_utils.py              # Extracts timestamp for video playback
-├── video_player.py                 # Implements a class for video player functionality 
-└── gui_media_visualization.py      # Provides GUI for media playback 
 ```
 
 ## Members:
@@ -145,4 +144,4 @@ The SenseRator was a Senior Design project at UCF for the Spring 2023 - Fall 202
 - Alek Dussuau - Backend, Data Collection
 - Gabriela Shamblin - Front End, Point Cloud Renders
 - Jose Puche - Backend, Object Detection
-- Trevor Geiger - Backend, Semantic Segmentation
+- Trevor Geiger - Backend, Semantic Segmentation, Documentation
